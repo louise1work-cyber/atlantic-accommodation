@@ -124,14 +124,40 @@ the enquiry itself already landed, and that's what matters.
 
 ## Brand
 
-Design direction: **quiet classic hospitality** — muted, understated, no gradients or
-soft/rounded cards. Restraint is the point; the photography should do the talking.
+Design direction: **coastal estate** — sage, blush and deep forest green on white, airy and
+elegant. Adapted from [westrocklangebaan.co.za](https://westrocklangebaan.co.za) at the owner's
+request. (West Rock is a Langebaan *property development* selling homes — not a holiday-rental
+competitor.) The underlying restraint from the previous direction is kept: hairline borders,
+no gradients, no drop shadows, no hover lift; the photography does the talking.
 
-- Fonts: **EB Garamond** (headings) + **Inter** (body/labels), loaded from Google Fonts.
-  Labels and buttons are uppercase with wide letter-spacing.
-- Colours: warm ink `#2e2b26`, stone `#f7f5f1`, panel `#efebe4`, deep forest-charcoal
-  `#343830`, and a single clay accent `#9a6a4a` used sparingly.
-- Shapes: near-square corners (2px), hairline borders, **no drop shadows and no hover lift**.
+### Palette
 
-All of the above are CSS variables at the top of `assets/css/style.css` — change the palette
-there and it flows through every page.
+| Token | Hex | Use |
+|---|---|---|
+| `--deep` | `#154734` | deep forest — dark sections, primary buttons |
+| `--sage` | `#83a198` | signature sage — **decorative only** (borders); 2.8:1, too light for text |
+| `--sage-deep` | `#55736a` | text-safe sage — labels, accents (5.2:1) |
+| `--blush` | `#d5afa2` | signature blush — CTA fills |
+| `--ink` | `#16302a` | headings (14.1:1) |
+| `--ink-soft` | `#3f524b` | body copy (8.3:1) |
+| `--muted` | `#627972` | secondary text (4.7:1) |
+| `--bg` / `--panel` | `#ffffff` / `#f6f9f7` | page / subtle panel |
+
+Sage and blush come straight from West Rock. **Where we deliberately differ:** they set text in
+sage on white (~2.8:1) and white on blush (~2:1), both of which fail WCAG AA. We use the same
+colours but pair them for contrast — blush buttons carry deep-green text at 5.29:1. Every text
+colour here passes AA.
+
+### Type
+
+- **Montserrat** (body, labels, buttons) — matches West Rock exactly; uppercase with wide tracking.
+- **Cormorant Garamond** (display) — free stand-in for West Rock's `the-seasons`, which is a
+  licensed Adobe Typekit font we can't use. Cormorant has a true italic, which the hero headline
+  needs, but a small x-height and light 400 — hence headings are sized up and set at 500.
+
+### Shapes
+
+Full pills on buttons (`--radius-pill`), 4px on cards — both taken from West Rock.
+
+All of this lives in CSS variables at the top of `assets/css/style.css` — change them there and
+it flows through every page.
