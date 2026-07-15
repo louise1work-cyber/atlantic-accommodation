@@ -169,6 +169,27 @@ p  { margin: 0 0 1.1rem; }
 .hero__badge strong { display: block; font-family: var(--font-display); font-size: 1.05rem; font-weight: 400; }
 .hero__badge span { font-size: .74rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
 
+/* ---------- Real photography ----------
+   Sources are portrait/near-square, so every crop is object-fit: cover.
+   background sits behind while the image loads, so nothing flashes white. */
+.media {
+  display: block; width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  border-radius: var(--radius);
+  background: var(--stone-3);
+}
+.media--card { aspect-ratio: 4 / 3; height: auto; }
+.media--hero { aspect-ratio: 4 / 5; height: auto; }
+.media--wide { aspect-ratio: 16 / 9; height: auto; }
+.media--tall { aspect-ratio: 3 / 4; height: auto; }
+.media--fill { height: 100%; border-radius: 0; }
+.card__media .media { border-radius: 0; }
+
+/* Single-photo detail pages: one full-width image instead of a gallery
+   (a real photo next to grey placeholders reads as broken). */
+.pd-single { margin-top: 32px; border: 1px solid var(--line); }
+.pd-single .media { border-radius: 0; aspect-ratio: 21 / 9; }
+
 /* ---------- Placeholder media — quiet greige ---------- */
 .ph {
   position: relative; border-radius: var(--radius); overflow: hidden;
@@ -259,9 +280,17 @@ p  { margin: 0 0 1.1rem; }
 .stack-list span { color: var(--muted); font-size: .92rem; }
 
 /* ---------- Property detail ---------- */
-.pd-hero { display: grid; grid-template-columns: 1.5fr 1fr; gap: 1px; margin-top: 32px; background: var(--line); border: 1px solid var(--line); }
+/* Gallery height is driven by the frame, not by the (portrait) source images —
+   otherwise a 800x1100 photo makes the gallery ~1200px tall and eats the page. */
+.pd-hero {
+  display: grid; grid-template-columns: 1.5fr 1fr; gap: 1px; margin-top: 32px;
+  background: var(--line); border: 1px solid var(--line);
+  aspect-ratio: 16 / 9; max-height: 620px;
+}
 .pd-hero .ph { height: 100%; border-radius: 0; }
-.pd-gallery-side { display: grid; grid-template-rows: 1fr 1fr; gap: 1px; }
+.pd-hero > .media { height: 100%; min-height: 0; }
+.pd-gallery-side { display: grid; grid-template-rows: 1fr 1fr; gap: 1px; min-height: 0; }
+.pd-gallery-side .media { min-height: 0; }
 .pd-layout { display: grid; grid-template-columns: 1fr 340px; gap: 72px; align-items: start; }
 .pd-specs { display: flex; flex-wrap: wrap; gap: 2.4rem; padding: 1.6rem 0; background: transparent; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); border-radius: 0; margin: 2rem 0 2.4rem; }
 .pd-specs div { display: flex; align-items: center; gap: .7rem; font-weight: 400; color: var(--ink); font-family: var(--font-display); font-size: 1.2rem; }
@@ -379,8 +408,12 @@ p  { margin: 0 0 1.1rem; }
   .steps { gap: 32px; }
   .pd-layout { grid-template-columns: 1fr; gap: 48px; }
   .booking-card { position: static; }
-  .pd-hero { grid-template-columns: 1fr; }
+  /* Stacked: drop the 16/9 frame, or it crushes the main photo to a sliver.
+     Each image gets its own aspect instead. */
+  .pd-hero { grid-template-columns: 1fr; aspect-ratio: auto; max-height: none; }
+  .pd-hero > .media { aspect-ratio: 4 / 3; height: auto; }
   .pd-gallery-side { grid-template-columns: 1fr 1fr; grid-template-rows: none; }
+  .pd-gallery-side .media { aspect-ratio: 1 / 1; height: auto; }
   .footer-grid { grid-template-columns: 1fr 1fr; gap: 36px; }
 }
 /* The uppercase, letter-spaced nav is wide — collapse to the menu early

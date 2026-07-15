@@ -44,9 +44,29 @@ For **Vercel**: `npm i -g vercel` then run `vercel` in this folder — no build 
   - Seaview Dolphin Beach → https://www.airbnb.co.uk/rooms/1084129001354486118
 - Crew House specs: 4 bed / 3 bath / sleeps 15, braai, fireplace, near Club Mykonos
 
+**Photography** — real photos are in `assets/img/`, sourced from the accommodation page on
+atlanticyachting.co.za (same owners) and re-encoded from PNG to JPEG (8.2 MB → 2.3 MB).
+Originals are only ~800–1024px wide, so they're a little soft on high-DPI screens; replace with
+higher-resolution originals when available.
+
+| File | Shows |
+|---|---|
+| `crew-house.jpg` | Crew House — covered patio / pergola |
+| `crew-house-kitchen.jpg` | Crew House — open-plan kitchen & dining |
+| `crew-house-lounge.jpg` | Crew House — TV lounge |
+| `crew-house-bedroom.jpg` | Crew House — twin bedroom (**not currently used**) |
+| `beach-cottage.jpg` | Beach Cottage — patio at dusk (also the homepage hero) |
+| `apartment.jpg` | Apartment — open-plan living |
+| `dolphin-beach.jpg` | Seaview — living area |
+| `langebaan-lagoon.jpg` | Lagoon panorama (About section) |
+
+Only the Crew House has enough photos for a gallery. The other three have one photo each, so their
+detail pages show a single full-width image — deliberately, since one real photo beside grey
+placeholders reads as broken. Add more photos and they can use the `pd-hero` gallery like
+`crew-house.html` does.
+
 **Placeholders to replace before going live** (marked with `*` or "coming soon" on the site):
-1. **Photos** — every image is a captioned gradient placeholder. Drop real photos into
-   `assets/img/` and swap the `<div class="ph">…</div>` blocks for `<img>` tags.
+1. **Maps** — still "Map Coming Soon" placeholders on the four property pages and contact page.
 2. **Bed / bath / guest counts** for Beach Cottage, Apartment and Seaview (currently estimated — marked `*`).
 3. **Booking.com links** — buttons exist but point to `#`. Add the real URLs once the
    listings are created (search for `channel-btn--booking` and `chip--booking`).
