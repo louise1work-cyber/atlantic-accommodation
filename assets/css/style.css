@@ -341,6 +341,15 @@ p  { margin: 0 0 1.1rem; }
 .field textarea { resize: vertical; min-height: 130px; }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.3rem; }
 .form-note { font-size: .74rem; color: var(--muted); margin-top: .6rem; }
+.form-error {
+  border: 1px solid #a5503f; border-left-width: 3px;
+  background: #f7ebe7; color: #7d3a2c;
+  padding: .9rem 1rem; margin-bottom: 1rem; border-radius: var(--radius);
+  font-size: .88rem; line-height: 1.55;
+}
+.form-error a { color: #7d3a2c; text-decoration: underline; }
+.form-error a:hover { color: var(--clay); }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
 .form-success { display: none; text-align: center; padding: 2rem; }
 .form-success.show { display: block; }
 .form-success svg { width: 44px; height: 44px; color: var(--clay); margin: 0 auto 1.2rem; stroke-width: 1.2; }

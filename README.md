@@ -74,10 +74,27 @@ placeholders reads as broken. Add more photos and they can use the `pd-hero` gal
 2. **Bed / bath / guest counts** for Beach Cottage, Apartment and Seaview are estimates, marked
    with `*` on the site. Confirm against the Airbnb listings.
 3. **Social links** — Facebook/Instagram in the footer point to `#`.
-4. **Enquiry form** — deliberately parked (deferred 2026-07-15 until the design settles).
-   It shows a success message and **sends nothing**. Wire it to a form service (Formspree,
-   Web3Forms) or a small backend before promoting the site. See the `data-enquiry` handler
-   in `assets/js/main.js`.
+4. **Enquiry form — needs the Web3Forms access key pasted in.** Everything else is built.
+
+## Activating the enquiry form
+
+The form posts to [Web3Forms](https://web3forms.com), which emails submissions to
+`info@atlanticaccommodation.co.za`. One step remains:
+
+1. Go to https://web3forms.com, enter **info@atlanticaccommodation.co.za**, and they email
+   you an **access key** (free, no account needed).
+2. In `contact.html`, replace `REPLACE_WITH_WEB3FORMS_ACCESS_KEY` with that key.
+3. Commit and push — it deploys automatically. Send yourself a test enquiry.
+
+The access key is **not a secret** — it ships in the page source by design and only permits
+sending to the address it was issued for, so it's safe in a public repo.
+
+Until the key is in, the form **refuses to submit** and shows an error pointing guests at the
+email address and phone number. That's deliberate: the previous version always showed a
+"thank you" and silently discarded the enquiry, which loses real bookings. The handler in
+`assets/js/main.js` only shows success when Web3Forms confirms the send; any failure re-enables
+the button and surfaces the fallback contact details. A hidden `botcheck` honeypot field
+catches spam.
 
 ## Brand
 

@@ -76,6 +76,16 @@
     <div class="reveal in">
       <div class="form-card">
         <form data-enquiry novalidate>
+          <!-- Web3Forms delivery. The access key is a public identifier (it ships in the
+               page source by design) — it is not a secret. Get one free, with no account,
+               at https://web3forms.com by entering info@atlanticaccommodation.co.za;
+               the key arrives by email. Paste it below to activate the form. -->
+          <input type="hidden" name="access_key" value="REPLACE_WITH_WEB3FORMS_ACCESS_KEY" />
+          <input type="hidden" name="subject" value="New booking enquiry — atlanticaccommodation.co.za" />
+          <input type="hidden" name="from_name" value="Atlantic Accommodation website" />
+          <!-- honeypot: bots fill this, humans never see it -->
+          <input type="checkbox" name="botcheck" tabindex="-1" aria-hidden="true" style="display:none" />
+
           <h2 style="font-size:1.6rem;margin-bottom:.4rem">Send an enquiry</h2>
           <p style="color:var(--muted);margin-bottom:1.6rem">Fields marked * are required.</p>
           <div class="field-row">
@@ -120,7 +130,8 @@
             <label for="message">Message</label>
             <textarea id="message" name="message" placeholder="Tell us about your trip — dates, group, and anything you'd like to know."></textarea>
           </div>
-          <button type="submit" class="btn btn--primary btn--block">Send enquiry</button>
+          <div class="form-error" data-form-error role="alert" hidden></div>
+          <button type="submit" class="btn btn--primary btn--block" data-submit>Send enquiry</button>
           <p class="form-note">By sending, you agree to be contacted about your enquiry. We never share your details.</p>
         </form>
         <div class="form-success">
