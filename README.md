@@ -74,27 +74,53 @@ placeholders reads as broken. Add more photos and they can use the `pd-hero` gal
 2. **Bed / bath / guest counts** for Beach Cottage, Apartment and Seaview are estimates, marked
    with `*` on the site. Confirm against the Airbnb listings.
 3. **Social links** — Facebook/Instagram in the footer point to `#`.
-4. **Enquiry form — needs the Web3Forms access key pasted in.** Everything else is built.
+4. **Enquiry form — needs `RESEND_API_KEY` set in Vercel.** Everything else is built.
 
-## Activating the enquiry form
+## The enquiry form
 
-The form posts to [Web3Forms](https://web3forms.com), which emails submissions to
-`info@atlanticaccommodation.co.za`. One step remains:
+`contact.html` posts JSON to **`/api/enquiry`** (`api/enquiry.js`), a Vercel Function that
+sends two emails through [Resend](https://resend.com)'s REST API:
 
-1. Go to https://web3forms.com, enter **info@atlanticaccommodation.co.za**, and they email
-   you an **access key** (free, no account needed).
-2. In `contact.html`, replace `REPLACE_WITH_WEB3FORMS_ACCESS_KEY` with that key.
-3. Commit and push — it deploys automatically. Send yourself a test enquiry.
+1. **the enquiry to the owners** at `ENQUIRY_TO`, with `reply-to` set to the guest — so hitting
+   reply in your mail client answers them directly
+2. **an instant branded confirmation to the guest**
 
-The access key is **not a secret** — it ships in the page source by design and only permits
-sending to the address it was issued for, so it's safe in a public repo.
+It calls Resend over `fetch`, so there are **no npm dependencies and no build step** — the site
+stays a plain static deploy.
 
-Until the key is in, the form **refuses to submit** and shows an error pointing guests at the
-email address and phone number. That's deliberate: the previous version always showed a
-"thank you" and silently discarded the enquiry, which loses real bookings. The handler in
-`assets/js/main.js` only shows success when Web3Forms confirms the send; any failure re-enables
-the button and surfaces the fallback contact details. A hidden `botcheck` honeypot field
-catches spam.
+### Activating it
+
+1. Create an account at https://resend.com.
+2. **Verify the domain** `atlanticaccommodation.co.za` (Resend → Domains → Add). Resend gives
+   you DKIM/SPF records to add in xneelo's konsoleH. These are **TXT records only — they do not
+   touch the MX record**, so email keeps working. Until the domain is verified Resend will only
+   send from `onboarding@resend.dev`, which looks unprofessional to guests.
+3. Create an API key (Resend → API Keys).
+4. Add it to Vercel — do this yourself so the key never lands in the repo or a transcript:
+   ```bash
+   vercel env add RESEND_API_KEY production
+   ```
+   Then redeploy (`vercel deploy --prod`) or push any commit.
+5. Once the domain is verified, also set `ENQUIRY_FROM`:
+   ```bash
+   vercel env add ENQUIRY_FROM production
+   # value: Atlantic Accommodation <info@atlanticaccommodation.co.za>
+   ```
+
+| Env var | Required | Default |
+|---|---|---|
+| `RESEND_API_KEY` | **yes** | — |
+| `ENQUIRY_TO` | no | `info@atlanticaccommodation.co.za` |
+| `ENQUIRY_FROM` | no | `Atlantic Accommodation <onboarding@resend.dev>` |
+
+### Why it's built this way
+
+An earlier version always showed "thank you" and silently discarded the enquiry — that loses
+real bookings. Now **success only shows when Resend confirms the send**. Any failure re-enables
+the button and shows the email address and phone number so the guest still gets through.
+Guest input is HTML-escaped before going into the email, fields are length-capped, and a hidden
+`botcheck` honeypot catches spam. If the guest auto-reply fails, the request still succeeds —
+the enquiry itself already landed, and that's what matters.
 
 ## Brand
 

@@ -76,13 +76,8 @@
     <div class="reveal in">
       <div class="form-card">
         <form data-enquiry novalidate>
-          <!-- Web3Forms delivery. The access key is a public identifier (it ships in the
-               page source by design) — it is not a secret. Get one free, with no account,
-               at https://web3forms.com by entering info@atlanticaccommodation.co.za;
-               the key arrives by email. Paste it below to activate the form. -->
-          <input type="hidden" name="access_key" value="REPLACE_WITH_WEB3FORMS_ACCESS_KEY" />
-          <input type="hidden" name="subject" value="New booking enquiry — atlanticaccommodation.co.za" />
-          <input type="hidden" name="from_name" value="Atlantic Accommodation website" />
+          <!-- Posts to our own /api/enquiry function, which sends via Resend.
+               Needs RESEND_API_KEY set in Vercel — see README. -->
           <!-- honeypot: bots fill this, humans never see it -->
           <input type="checkbox" name="botcheck" tabindex="-1" aria-hidden="true" style="display:none" />
 

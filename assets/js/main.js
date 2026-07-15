@@ -28,11 +28,10 @@
     reveals.forEach(function (el) { el.classList.add("in"); });
   }
 
-  /* Enquiry form — posts to Web3Forms, which emails info@atlanticaccommodation.co.za.
+  /* Enquiry form — posts to our own /api/enquiry function, which sends via Resend.
      Never show success unless the send is actually confirmed: a false "thank you"
      loses a real booking silently. */
-  var ENDPOINT = "https://api.web3forms.com/submit";
-  var KEY_PLACEHOLDER = "REPLACE_WITH_WEB3FORMS_ACCESS_KEY";
+  var ENDPOINT = "/api/enquiry";
   var FALLBACK =
     'Please email <a href="mailto:info@atlanticaccommodation.co.za">info@atlanticaccommodation.co.za</a> ' +
     'or call <a href="tel:+27713252574">+27 71 325 2574</a> and we\'ll pick it up right away.';
@@ -62,11 +61,6 @@
       var data = {};
       new FormData(form).forEach(function (v, k) { data[k] = v; });
 
-      if (data.access_key === KEY_PLACEHOLDER || !data.access_key) {
-        showError("This form isn't connected yet. " + FALLBACK);
-        return;
-      }
-
       button.disabled = true;
       var label = button.textContent;
       button.textContent = "Sending…";
@@ -76,9 +70,13 @@
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify(data)
       })
-        .then(function (res) { return res.json().then(function (j) { return { ok: res.ok, body: j }; }); })
+        .then(function (res) {
+          return res.json()
+            .catch(function () { return {}; })            // non-JSON (proxy error page, etc.)
+            .then(function (j) { return { ok: res.ok, body: j || {} }; });
+        })
         .then(function (r) {
-          if (!r.ok || !r.body.success) throw new Error((r.body && r.body.message) || "Send failed");
+          if (!r.ok || r.body.ok !== true) throw new Error(r.body.error || "Send failed");
           form.style.display = "none";
           if (successBox) successBox.classList.add("show");
         })
