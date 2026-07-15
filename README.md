@@ -17,7 +17,7 @@ listing on **Airbnb** and **Booking.com**.
 | `properties/apartment.html` | Atlantic Apartment (Langebaan) |
 | `properties/seaview-dolphin-beach.html` | Atlantic Seaview (Dolphin Beach, Cape Town) |
 | `contact.html` | Contact details + direct-booking enquiry form |
-| `assets/css/style.css` | All styling (coastal theme) |
+| `assets/css/style.css` | All styling (quiet classic hospitality theme) |
 | `assets/js/main.js` | Mobile menu, scroll reveal, form handling |
 
 ## Run it locally
@@ -36,8 +36,11 @@ For **Vercel**: `npm i -g vercel` then run `vercel` in this folder — no build 
 
 ## What's placeholder vs. confirmed
 
-**Confirmed** (from atlanticyachting.co.za):
-- Contact: **+27 71 325 2574**, **info@atlanticyachting.co.za**, Club Mykonos, Agora Square, Langebaan, 7357
+**Confirmed:**
+- Phone **+27 71 325 2574** and the address **Club Mykonos, Agora Square, Langebaan, 7357**
+  (both from atlanticyachting.co.za — same owners)
+- Email **info@atlanticaccommodation.co.za** — the rentals-branded address, set 2026-07-15,
+  replacing the original `info@atlanticyachting.co.za`
 - Airbnb links are live:
   - Beach Cottage → https://www.airbnb.co.uk/rooms/16727412
   - Apartment → https://abnb.me/M9eAErSYOzb
@@ -65,18 +68,18 @@ detail pages show a single full-width image — deliberately, since one real pho
 placeholders reads as broken. Add more photos and they can use the `pd-hero` gallery like
 `crew-house.html` does.
 
-**Placeholders to replace before going live** (marked with `*` or "coming soon" on the site):
-1. **Maps** — still "Map Coming Soon" placeholders on the four property pages and contact page.
-2. **Bed / bath / guest counts** for Beach Cottage, Apartment and Seaview (currently estimated — marked `*`).
+**Still outstanding:**
+1. **Maps** — "Map Coming Soon" placeholders on the four property pages and the contact page;
+   embed Google Maps if wanted.
+2. **Bed / bath / guest counts** for Beach Cottage, Apartment and Seaview are estimates, marked
+   with `*` on the site. Confirm against the Airbnb listings.
 3. **Booking.com links** — buttons exist but point to `#`. Add the real URLs once the
    listings are created (search for `channel-btn--booking` and `chip--booking`).
-4. **Maps** — "Map coming soon" placeholders; embed Google Maps if wanted.
-5. **Social links** — Facebook/Instagram in the footer point to `#`.
-6. **Enquiry form** — currently shows a success message only (no email is sent).
-   Wire it to a form service (Formspree, Web3Forms) or a small backend. See the
-   `data-enquiry` handler in `assets/js/main.js`.
-7. Consider a dedicated email like `info@atlanticaccommodation.co.za` if you want the
-   rentals brand separate from Atlantic Yachting.
+4. **Social links** — Facebook/Instagram in the footer point to `#`.
+5. **Enquiry form** — deliberately parked (deferred 2026-07-15 until the design settles).
+   It shows a success message and **sends nothing**. Wire it to a form service (Formspree,
+   Web3Forms) or a small backend before promoting the site. See the `data-enquiry` handler
+   in `assets/js/main.js`.
 
 ## Brand
 
