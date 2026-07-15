@@ -4,13 +4,13 @@ A fast, self-contained static website for **Atlantic Accommodation** — self-ca
 rentals in **Langebaan** and **Dolphin Beach** on South Africa's Cape West Coast.
 
 Guests can **book directly with the owners** (enquiry form) or jump straight to the same
-listing on **Airbnb** and **Booking.com**.
+listing on **Airbnb**.
 
 ## Pages
 
 | File | Purpose |
 |------|---------|
-| `index.html` | Home — hero, featured properties, "3 ways to book", how-it-works, about |
+| `index.html` | Home — hero, featured properties, "2 ways to book", how-it-works, about |
 | `properties.html` | All four properties with booking channels |
 | `properties/crew-house.html` | Atlantic Crew House (Langebaan, sleeps 15) |
 | `properties/beach-cottage.html` | Atlantic Beach Cottage (Langebaan) |
@@ -73,10 +73,8 @@ placeholders reads as broken. Add more photos and they can use the `pd-hero` gal
    embed Google Maps if wanted.
 2. **Bed / bath / guest counts** for Beach Cottage, Apartment and Seaview are estimates, marked
    with `*` on the site. Confirm against the Airbnb listings.
-3. **Booking.com links** — buttons exist but point to `#`. Add the real URLs once the
-   listings are created (search for `channel-btn--booking` and `chip--booking`).
-4. **Social links** — Facebook/Instagram in the footer point to `#`.
-5. **Enquiry form** — deliberately parked (deferred 2026-07-15 until the design settles).
+3. **Social links** — Facebook/Instagram in the footer point to `#`.
+4. **Enquiry form** — deliberately parked (deferred 2026-07-15 until the design settles).
    It shows a success message and **sends nothing**. Wire it to a form service (Formspree,
    Web3Forms) or a small backend before promoting the site. See the `data-enquiry` handler
    in `assets/js/main.js`.

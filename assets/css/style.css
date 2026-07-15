@@ -251,12 +251,11 @@ p  { margin: 0 0 1.1rem; }
 .chip:hover { border-color: var(--ink); color: var(--ink); background: transparent; }
 .chip svg { width: 13px; height: 13px; }
 .chip--airbnb:hover { border-color: var(--ink); color: var(--ink); background: transparent; }
-.chip--booking:hover { border-color: var(--ink); color: var(--ink); background: transparent; }
 .chip--direct { background: var(--ink); border-color: var(--ink); color: var(--stone); }
 .chip--direct:hover { background: var(--clay); border-color: var(--clay); color: #fff; }
 
 /* ---------- Feature blocks ---------- */
-.features { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.features { display: grid; grid-template-columns: repeat(2,1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
 .feature { background: var(--stone-2); border: 0; border-radius: 0; padding: 40px 32px; box-shadow: none; }
 .feature__icon { width: 34px; height: 34px; border-radius: 0; background: transparent !important; color: var(--clay) !important; display: grid; place-items: center; margin-bottom: 1.4rem; }
 .feature__icon svg { width: 24px; height: 24px; stroke-width: 1.2; }
@@ -325,7 +324,7 @@ p  { margin: 0 0 1.1rem; }
 .channel-btn--direct small { color: #b3aea4; }
 .channel-btn--direct:hover { background: var(--clay); border-color: var(--clay); }
 .channel-btn--direct:hover .ic, .channel-btn--direct:hover small { color: #f4e7dc !important; }
-.channel-btn--airbnb:hover, .channel-btn--booking:hover { border-color: var(--ink); }
+.channel-btn--airbnb:hover { border-color: var(--ink); }
 
 /* ---------- Forms ---------- */
 .form-card { background: var(--stone-2); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: none; padding: clamp(28px, 4vw, 46px); }
