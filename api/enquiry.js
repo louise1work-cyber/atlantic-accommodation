@@ -17,8 +17,12 @@
  */
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
+const TURNSTILE_ENDPOINT = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const TO = process.env.ENQUIRY_TO || "info@atlanticaccommodation.co.za";
 const FROM = process.env.ENQUIRY_FROM || "Atlantic Accommodation <onboarding@resend.dev>";
+
+// Reject anything submitted faster than a human could fill the form.
+const MIN_FILL_MS = 2500;
 
 const PHONE = "+27 71 325 2574";
 const SITE = "www.atlanticaccommodation.co.za";
@@ -35,6 +39,20 @@ const esc = (s) =>
 const clean = (v, max) => String(v == null ? "" : v).trim().slice(0, max);
 
 const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+// Verify a Cloudflare Turnstile token. Returns true if the token is valid,
+// throws on a hard failure so the caller can decide how to respond.
+async function verifyTurnstile(secret, token, ip) {
+  const params = new URLSearchParams({ secret, response: token });
+  if (ip) params.append("remoteip", ip);
+  const res = await fetch(TURNSTILE_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString()
+  });
+  const body = await res.json().catch(() => ({}));
+  return body && body.success === true;
+}
 
 async function send(key, payload) {
   const res = await fetch(RESEND_ENDPOINT, {
@@ -137,8 +155,36 @@ module.exports = async (req, res) => {
   }
   body = body || {};
 
-  // Honeypot: bots fill this. Return success so they don't retry.
+  // --- Anti-spam layers ---
+
+  // 1. Honeypot: bots fill this hidden field. Pretend success so they don't retry.
   if (body.botcheck) return res.status(200).json({ ok: true });
+
+  // 2. Timing trap: a human takes time to fill the form; bots post instantly.
+  //    `elapsed` is measured client-side (ms since the page loaded), so it's
+  //    immune to clock skew. Absent = allowed (JS may not have run); too-fast = bot.
+  var elapsed = Number(body.elapsed);
+  if (Number.isFinite(elapsed) && elapsed >= 0 && elapsed < MIN_FILL_MS) {
+    return res.status(200).json({ ok: true });
+  }
+
+  // 3. Cloudflare Turnstile: only enforced once the secret is configured, so the
+  //    form keeps working before setup. When on, a missing/invalid token is rejected.
+  var turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+  if (turnstileSecret) {
+    var token = clean(body["cf-turnstile-response"], 4000);
+    if (!token) {
+      return res.status(400).json({ error: "Please complete the anti-spam check and try again." });
+    }
+    var headers = req.headers || {};
+    var ip = headers["cf-connecting-ip"] || headers["x-forwarded-for"] || "";
+    var human = false;
+    try { human = await verifyTurnstile(turnstileSecret, token, String(ip).split(",")[0].trim()); }
+    catch (err) { console.error("Turnstile verify error:", err.message); }
+    if (!human) {
+      return res.status(400).json({ error: "Anti-spam check failed. Please try again." });
+    }
+  }
 
   const d = {
     name: clean(body.name, MAX.name),

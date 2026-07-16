@@ -26,6 +26,8 @@
         <li><a href="index.html#book-direct">Book Direct</a></li>
         <li><a href="index.html#about">About</a></li>
         <li><a href="contact.html" class="active">Contact</a></li>
+        <li class="nav__mobile-only"><a href="tel:+27713252574">+27 71 325 2574</a></li>
+        <li class="nav__mobile-only nav__mobile-cta"><a href="properties.html" class="btn btn--primary btn--sm">Browse Stays</a></li>
       </ul>
     </nav>
     <div class="nav__cta">
@@ -75,9 +77,12 @@
     <!-- Enquiry form -->
     <div class="reveal in">
       <div class="form-card">
-        <form data-enquiry novalidate>
+        <form data-enquiry novalidate data-turnstile-sitekey="REPLACE_WITH_TURNSTILE_SITE_KEY">
           <!-- Posts to our own /api/enquiry function, which sends via Resend.
-               Needs RESEND_API_KEY set in Vercel — see README. -->
+               Needs RESEND_API_KEY set in Vercel — see README.
+               Anti-spam: honeypot + timing trap always on; Cloudflare Turnstile
+               activates once data-turnstile-sitekey above and TURNSTILE_SECRET_KEY
+               in Vercel are both set. -->
           <!-- honeypot: bots fill this, humans never see it -->
           <input type="checkbox" name="botcheck" tabindex="-1" aria-hidden="true" style="display:none" />
 
@@ -125,6 +130,7 @@
             <label for="message">Message</label>
             <textarea id="message" name="message" placeholder="Tell us about your trip — dates, group, and anything you'd like to know."></textarea>
           </div>
+          <div class="cf-turnstile" data-turnstile hidden style="margin-bottom:1rem"></div>
           <div class="form-error" data-form-error role="alert" hidden></div>
           <button type="submit" class="btn btn--primary btn--block" data-submit>Send enquiry</button>
           <p class="form-note">By sending, you agree to be contacted about your enquiry. We never share your details.</p>

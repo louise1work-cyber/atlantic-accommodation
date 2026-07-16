@@ -118,9 +118,43 @@ stays a plain static deploy.
 An earlier version always showed "thank you" and silently discarded the enquiry — that loses
 real bookings. Now **success only shows when Resend confirms the send**. Any failure re-enables
 the button and shows the email address and phone number so the guest still gets through.
-Guest input is HTML-escaped before going into the email, fields are length-capped, and a hidden
-`botcheck` honeypot catches spam. If the guest auto-reply fails, the request still succeeds —
-the enquiry itself already landed, and that's what matters.
+Guest input is HTML-escaped before going into the email, fields are length-capped. If the guest
+auto-reply fails, the request still succeeds — the enquiry itself already landed.
+
+## Anti-spam
+
+Three layers on `/api/enquiry`, so you don't get spam mail:
+
+1. **Honeypot** — a hidden `botcheck` field. Bots fill it, humans can't see it. Always on.
+2. **Timing trap** — submissions faster than 2.5s (measured client-side, so it's immune to
+   clock skew) are dropped as bots. Always on.
+3. **Cloudflare Turnstile** — a free, near-invisible bot check, verified server-side. **Off until
+   you configure it**, so the form works before setup; switches on automatically once the keys
+   are in.
+
+### Activating Turnstile (optional but recommended — you're already on Cloudflare)
+
+1. Cloudflare dashboard → **Turnstile** → add a widget for `atlanticaccommodation.co.za`.
+   You get a **site key** (public) and a **secret key**.
+2. In `contact.html`, replace `REPLACE_WITH_TURNSTILE_SITE_KEY` (on the `<form>`) with the site key.
+3. Add the secret to Vercel (do it yourself so it stays out of the repo):
+   ```bash
+   vercel env add TURNSTILE_SECRET_KEY production
+   ```
+4. Push / redeploy.
+
+The site key is **public** by design (it ships in the page); only the secret must stay private.
+Bots that never load the page — the most common source of form spam — are already blocked by the
+honeypot and timing trap without Turnstile.
+
+## Security headers
+
+`vercel.json` sets site-wide headers on every response: a **Content-Security-Policy** that only
+allows the resources this site actually uses (self, Google Fonts, Cloudflare Turnstile), plus
+`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` (+ CSP `frame-ancestors 'none'`) to
+prevent clickjacking, `Referrer-Policy`, `Strict-Transport-Security`, and a restrictive
+`Permissions-Policy`. If you add a new external resource (an embedded map, an analytics script),
+update the CSP or the browser will block it.
 
 ## Brand
 

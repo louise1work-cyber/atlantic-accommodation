@@ -41,6 +41,25 @@
     var errorBox = form.querySelector("[data-form-error]");
     var button = form.querySelector("[data-submit]");
     var successBox = form.parentNode.querySelector(".form-success");
+    var loadedAt = Date.now();
+
+    // Load Cloudflare Turnstile only if a real site key is configured, so the
+    // form isn't blocked by a broken widget before setup.
+    var siteKey = form.getAttribute("data-turnstile-sitekey");
+    var turnstileReady = false;
+    if (siteKey && siteKey.indexOf("REPLACE_WITH") !== 0) {
+      var holder = form.querySelector("[data-turnstile]");
+      if (holder) {
+        holder.setAttribute("data-sitekey", siteKey);
+        holder.hidden = false;
+        var s = document.createElement("script");
+        s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+        s.async = true;
+        s.defer = true;
+        document.head.appendChild(s);
+        turnstileReady = true;
+      }
+    }
 
     var showError = function (msg) {
       if (!errorBox) return;
@@ -60,6 +79,13 @@
 
       var data = {};
       new FormData(form).forEach(function (v, k) { data[k] = v; });
+      data.elapsed = Date.now() - loadedAt;
+
+      // If Turnstile is active, require its token before sending.
+      if (turnstileReady && !data["cf-turnstile-response"]) {
+        showError("Please complete the anti-spam check, then send again.");
+        return;
+      }
 
       button.disabled = true;
       var label = button.textContent;

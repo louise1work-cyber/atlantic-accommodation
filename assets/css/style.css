@@ -156,8 +156,15 @@ p  { margin: 0 0 1.1rem; }
 .nav__cta .btn--ghost { border-color: transparent; padding-left: 0; padding-right: .4rem; letter-spacing: .08em; }
 .nav__cta .btn--ghost:hover { color: var(--sage-deep); }
 
-.nav__toggle { display: none; background: none; border: 0; cursor: pointer; padding: 8px; }
+.nav__toggle {
+  display: none; background: none; border: 0; cursor: pointer;
+  width: 44px; height: 44px; padding: 10px;   /* 44px = minimum comfortable touch target */
+  margin-right: -10px;                        /* keep the bars optically aligned to the edge */
+}
 .nav__toggle span { display: block; width: 22px; height: 1px; background: var(--ink); margin: 6px 0; transition: .25s var(--ease); }
+
+/* Only shown inside the open mobile menu */
+.nav__mobile-only { display: none; }
 
 /* ---------- Hero — light, calm, no gradient ---------- */
 .hero { background: var(--bg); border-bottom: 1px solid var(--line); }
@@ -441,18 +448,29 @@ p  { margin: 0 0 1.1rem; }
 /* The uppercase, letter-spaced nav is wide — collapse to the menu early
    so it never overflows and forces horizontal scroll. */
 @media (max-width: 900px) {
-  .nav__links, .nav__cta .btn--ghost { display: none; }
-  .nav__toggle { display: block; }
+  /* Mobile header = logo + hamburger only. The phone number and book CTA
+     move inside the opened menu (nav__mobile-only items). */
+  .nav__links, .nav__cta { display: none; }
+  .nav__toggle { display: flex; align-items: center; justify-content: center; }
   .site-header.open .nav__links {
-    display: flex; flex-direction: column; align-items: flex-start; position: absolute; top: 78px; left: 0; right: 0;
-    background: var(--bg); padding: 22px 28px 28px; gap: 1.2rem; border-bottom: 1px solid var(--line);
+    display: flex; flex-direction: column; align-items: stretch; position: absolute; top: 78px; left: 0; right: 0;
+    background: var(--bg); padding: 20px 24px 26px; gap: .4rem; border-bottom: 1px solid var(--line);
+    box-shadow: 0 18px 30px rgba(21,71,52,.08);
   }
+  .site-header.open .nav__links a { padding: 12px 0; font-size: .9rem; }
+  .site-header.open .nav__mobile-only { display: block; }
+  .nav__mobile-only { margin-top: .6rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+  .nav__mobile-only.nav__mobile-cta { margin-top: 1rem; padding-top: 0; border-top: 0; }
+  .nav__mobile-cta .btn { width: 100%; }
+  .nav__mobile-only a::after { display: none; }   /* no underline animation on these */
 }
 
 @media (max-width: 720px) {
   body { font-size: 16px; }
   .grid--3, .grid--4, .grid--2 { grid-template-columns: 1fr; }
   .field-row { grid-template-columns: 1fr; }
+  /* 16px min stops iOS Safari zooming in when a field is focused. */
+  .field input, .field textarea, .field select { font-size: 16px; }
   .amenities { columns: 1; }
   .footer-grid { grid-template-columns: 1fr; }
   .hero__meta { gap: 2rem; }
