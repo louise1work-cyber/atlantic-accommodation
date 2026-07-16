@@ -81,11 +81,11 @@
       new FormData(form).forEach(function (v, k) { data[k] = v; });
       data.elapsed = Date.now() - loadedAt;
 
-      // If Turnstile is active, require its token before sending.
-      if (turnstileReady && !data["cf-turnstile-response"]) {
-        showError("Please complete the anti-spam check, then send again.");
-        return;
-      }
+      // Turnstile token is attached when present, but the browser never
+      // hard-blocks on it — the server is the real gate. If the widget is
+      // still solving or errored, the submit proceeds and the server (once
+      // its secret is set) accepts or rejects. This avoids a stuck form if
+      // the widget ever fails to load.
 
       button.disabled = true;
       var label = button.textContent;
