@@ -19,12 +19,12 @@
 
   --ink:       #16302a;   /* headings — near-black green */
   --ink-soft:  #3f524b;   /* body copy, 9.3:1 on white */
-  --muted:     #627972;   /* secondary text, 4.6:1 on white */
-  --bg:        #ffffff;   /* page background */
-  --panel:     #f6f9f7;   /* subtle panel */
-  --panel-2:   #e8efec;   /* deeper panel / image placeholder */
-  --line:      #dde6e2;   /* hairline */
-  --white:     #ffffff;
+  --muted:     #586d64;   /* secondary text, 5.1:1 on cream / 4.7:1 on panel */
+  --bg:        #fdfcfa;   /* page background — faint cream, just off white */
+  --panel:     #faf8f4;   /* subtle panel — barely deeper */
+  --panel-2:   #f2efe8;   /* deeper panel / image-load background */
+  --line:      #e8e3d8;   /* warm hairline — kept defined so borders read */
+  --white:     #ffffff;   /* kept pure white for input focus pop only */
 
   --radius:      4px;     /* West Rock uses 4px on cards */
   --radius-pill: 999px;   /* and full pills on buttons */
@@ -130,7 +130,7 @@ p  { margin: 0 0 1.1rem; }
 /* ---------- Header ---------- */
 .site-header {
   position: sticky; top: 0; z-index: 50;
-  background: rgba(255,255,255,.92);
+  background: rgba(253,252,250,.92);   /* cream, matches --bg */
   backdrop-filter: saturate(120%) blur(10px);
   -webkit-backdrop-filter: saturate(120%) blur(10px);
   border-bottom: 1px solid var(--line);
@@ -214,7 +214,7 @@ p  { margin: 0 0 1.1rem; }
 /* ---------- Placeholder media — quiet greige ---------- */
 .ph {
   position: relative; border-radius: var(--radius); overflow: hidden;
-  background: linear-gradient(var(--panel-2), #d7e3de);
+  background: linear-gradient(var(--panel-2), #dcd6c8);
   aspect-ratio: 4 / 3; display: grid; place-items: center;
   color: rgba(255,255,255,.92); isolation: isolate;
 }
