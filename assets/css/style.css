@@ -136,15 +136,13 @@ p  { margin: 0 0 1.1rem; }
   border-bottom: 1px solid var(--line);
 }
 .nav { display: flex; align-items: center; justify-content: space-between; height: 78px; }
-.brand { display: flex; align-items: center; gap: .75rem; font-family: var(--font-display); font-size: 1.6rem; color: var(--ink); font-weight: 400; letter-spacing: .02em; }
-.brand:hover { color: var(--ink); }
-.brand__mark { width: 34px; height: 34px; flex: none; }
-/* recolour the inline logo mark to the muted palette */
-.brand__mark rect { fill: var(--deep); }
-.brand__mark path:nth-of-type(1) { stroke: #ffffff; }
-.brand__mark path:nth-of-type(2) { stroke: var(--blush); }
-.brand small { display: block; font-family: var(--font-body); font-size: .56rem; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-top: 3px; }
-.brand__text { line-height: 1.05; }
+.brand { display: inline-flex; align-items: center; }
+.brand:hover { opacity: .82; }
+/* Real logo (from the business's Facebook page), recoloured to the site
+   palette and exported transparent — see assets/img/logo-deep.png /
+   logo-white.png. Height-constrained; width follows the source aspect
+   ratio (651x229) so it never distorts. */
+.brand__logo { display: block; height: 44px; width: auto; }
 
 .nav__links { display: flex; align-items: center; gap: 2.2rem; list-style: none; margin: 0; padding: 0; }
 .nav__links a { color: var(--ink-soft); font-weight: 400; font-size: .82rem; text-transform: uppercase; letter-spacing: .12em; position: relative; padding: 3px 0; }
@@ -394,17 +392,13 @@ p  { margin: 0 0 1.1rem; }
 
 /* ---------- Footer ---------- */
 .site-footer { background: var(--deep-2); color: #a9c0b8; padding: 76px 0 32px; }
-.site-footer .brand { color: #ffffff; }
-.site-footer .brand__mark rect { fill: #ffffff; }
-.site-footer .brand__mark path:nth-of-type(1) { stroke: var(--deep-2); }
-.site-footer .brand__mark path:nth-of-type(2) { stroke: var(--blush); }
 .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.2fr; gap: 48px; }
 .site-footer h4 { color: #ffffff; font-family: var(--font-body); font-size: .64rem; text-transform: uppercase; letter-spacing: .2em; font-weight: 500; margin-bottom: 1.4rem; }
 .site-footer a { color: #a9c0b8; display: inline-block; padding: .3rem 0; font-size: .92rem; }
 .site-footer a:hover { color: var(--blush); }
 .site-footer ul { list-style: none; padding: 0; margin: 0; }
 .footer-brand .brand { margin-bottom: 1.4rem; }
-.footer-brand .brand small { color: #8fa9a1; }
+.footer-brand .brand__logo { height: 54px; }
 .footer-brand p { font-size: .9rem; color: #8fa9a1; max-width: 30ch; }
 .footer-bottom { border-top: 1px solid rgba(255,255,255,.12); margin-top: 52px; padding-top: 26px; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: .74rem; color: #7d968e; text-transform: uppercase; letter-spacing: .1em; }
 .footer-bottom a { color: #7d968e; }

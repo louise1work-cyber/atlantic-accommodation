@@ -195,3 +195,23 @@ Full pills on buttons (`--radius-pill`), 4px on cards — both taken from West R
 
 All of this lives in CSS variables at the top of `assets/css/style.css` — change them there and
 it flows through every page.
+
+### Logo
+
+The header and footer use the business's real logo — the "Atlantic / ACCOMMODATION" wordmark
+pulled from their Facebook page (facebook.com/profile.php?id=100054578195109), not a placeholder.
+The original is dark navy on white; it's been recoloured and exported as two transparent PNGs so
+it drops onto both a light and a dark background cleanly:
+
+| File | Colour | Used in |
+|---|---|---|
+| `assets/img/logo-deep.png` | `--deep` (site green) | header, light background |
+| `assets/img/logo-white.png` | white | footer, dark background |
+
+Both are the same crop at 651×229px (native resolution from the source image — Facebook doesn't
+serve profile pictures larger than roughly that). Displayed at 44px tall in the header and 54px
+in the footer via `.brand__logo` in `style.css`; `width: auto` keeps the aspect ratio intact at
+any size, so don't set a fixed width on it.
+
+The favicon is intentionally a separate, simpler mark (a small wave icon) — the wordmark is too
+wide to read at 16–32px, so it isn't used there.
