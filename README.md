@@ -21,8 +21,12 @@ listing on **Airbnb**.
 | `assets/js/main.js` | Mobile menu, scroll reveal, form handling |
 | `api/enquiry.js` | Enquiry form handler — email via Resend, logs to Airtable |
 | `api/ical/[property].js` | Per-property `.ics` calendar feed for Airbnb/Booking.com sync |
+| `api/pay/[recordId].js` | Generates a PayFast payment link for one confirmed booking |
+| `api/pay/webhook.js` | PayFast ITN handler — verifies and records a completed payment |
+| `payment-success.html` / `payment-cancelled.html` | Where PayFast returns the guest to |
 | `lib/airtable.js` | Shared Airtable REST client |
 | `lib/ical.js` | iCalendar (.ics) file builder |
+| `lib/payfast.js` | PayFast signing, verification and payment-field builder |
 
 ## Run it locally
 
@@ -83,6 +87,10 @@ placeholders reads as broken. Add more photos and they can use the `pd-hero` gal
    `AIRTABLE_BASE_ID` set in Vercel.** See "Guest database & calendar sync" below. Enquiries
    still email fine without it; only the guest-database logging and the `.ics` feeds are skipped
    (feeds return 503) until it's set up.
+6. **Payment — needs a PayFast account + `PAYFAST_MERCHANT_ID` / `PAYFAST_MERCHANT_KEY` /
+   `PAYFAST_PASSPHRASE` set in Vercel.** See "Taking payment (PayFast)" below. Defaults to
+   PayFast's sandbox until `PAYFAST_MODE=live` is set deliberately — test a real sandbox
+   transaction first.
 
 ## The enquiry form
 
@@ -172,6 +180,9 @@ admin panel to build and no need to ask a developer to run a query.
    | `Consent Recorded At` | Single line text (an ISO timestamp — kept as text to avoid Airtable's date-field timezone handling) |
    | `Confirmed Booking` | Checkbox |
    | `Source` | Single line text |
+   | `Amount Due` | Currency (ZAR) — set once you've agreed a price, see "Taking payment" below |
+   | `Payment Status` | Single select — options: `Not Requested`, `Requested`, `Paid` |
+   | `PF Payment ID` | Single line text — PayFast fills this in automatically once paid |
 
 3. Create a personal access token at https://airtable.com/create/tokens, scoped to this base
    with `data.records:read` and `data.records:write`.
@@ -194,6 +205,68 @@ Once you've confirmed a direct booking by phone or email:
 
 That's it — the calendar feed for that property picks it up automatically (cached up to 15
 minutes; see below).
+
+## Taking payment (PayFast)
+
+Lets a guest pay for a confirmed booking by card or EFT, without you ever handling card details —
+the guest pays on PayFast's own hosted page, not on this site.
+
+**What this is not (yet):** a live "pick dates, see a price, pay instantly" checkout — the site
+has no rates table, so there's no automatic price to charge. This is a *payment request* flow:
+you confirm a booking and a price the normal way (phone/email), then send the guest a link that
+charges exactly that amount.
+
+### Setting it up
+
+1. Create a free PayFast account at https://payfast.io (no monthly fee — you only pay a
+   per-transaction fee, roughly 3.5% + R2 for cards or ~2% for Instant EFT, at time of writing).
+   **Create a Sandbox account first** (PayFast's own recommendation) and test a real payment
+   there before ever switching this to live — see step 4.
+2. In your PayFast dashboard, find your **Merchant ID** and **Merchant Key** (Settings), and set
+   a **Passphrase** (also in Settings — this is a secret salt used to sign every transaction;
+   make one up, don't leave it blank).
+3. Set these in Vercel yourself:
+   ```bash
+   vercel env add PAYFAST_MERCHANT_ID production
+   vercel env add PAYFAST_MERCHANT_KEY production
+   vercel env add PAYFAST_PASSPHRASE production
+   ```
+4. Leave `PAYFAST_MODE` unset (or set to `sandbox`) and test a full payment using PayFast's
+   sandbox test card/EFT details first. **Only once that's worked**, set it to go live:
+   ```bash
+   vercel env add PAYFAST_MODE production
+   # value: live
+   ```
+
+### Using it
+
+1. Confirm the booking in Airtable as above.
+2. Fill in **Amount Due** with the agreed price (in rand).
+3. Send the guest this link (swap in that row's Airtable record ID — visible in Airtable's own
+   URL/UI for that row):
+   ```
+   https://www.atlanticaccommodation.co.za/api/pay/recXXXXXXXXXXXXXX
+   ```
+4. The guest is redirected into PayFast's checkout. Once they pay, **`Payment Status` updates to
+   `Paid` in Airtable automatically** — PayFast confirms this to the site directly (the ITN
+   webhook, `api/pay/webhook.js`), it isn't based on the guest simply reaching the "thank you"
+   page, which anyone could navigate to without paying.
+
+### Why this is safe to trust
+
+A webhook that says "payment successful" is only as trustworthy as the checks behind it — anyone
+could POST a fake "COMPLETE" to a guessable URL otherwise. `api/pay/webhook.js` runs all four
+checks PayFast's own integration docs specify, and a booking is only marked Paid if **every one**
+passes:
+1. the payload's signature is valid (proves it wasn't altered in transit)
+2. the request actually originates from a PayFast server (checked against PayFast's own domains,
+   not a spoofable header)
+3. the amount paid matches what was actually requested
+4. PayFast's own server confirms the transaction when asked directly, server-to-server
+
+All four were tested independently — each one failing on its own (bad signature, wrong source,
+wrong amount, PayFast declining to confirm) correctly blocks the booking from being marked Paid,
+not just the case where everything happens to go wrong at once.
 
 ### Three-way calendar sync (Airbnb ↔ Booking.com ↔ direct)
 
