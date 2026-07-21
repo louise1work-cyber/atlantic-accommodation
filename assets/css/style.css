@@ -362,6 +362,14 @@ p  { margin: 0 0 1.1rem; }
 .field textarea { resize: vertical; min-height: 130px; }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.3rem; }
 .form-note { font-size: .74rem; color: var(--muted); margin-top: .6rem; }
+.field-check {
+  display: flex; align-items: flex-start; gap: .7rem; margin-bottom: 1.3rem;
+  cursor: pointer; font-size: .84rem; color: var(--muted); line-height: 1.5;
+}
+.field-check input[type="checkbox"] {
+  flex: none; width: 18px; height: 18px; margin-top: 2px;
+  accent-color: var(--terracotta); cursor: pointer;
+}
 .form-error {
   border: 1px solid #a5503f; border-left-width: 3px;
   background: #f7ebe7; color: #7d3a2c;

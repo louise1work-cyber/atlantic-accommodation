@@ -4,17 +4,25 @@
  * Sends two emails via Resend:
  *   1. the enquiry to the owners, with reply-to set to the guest
  *   2. an instant branded confirmation to the guest
+ * Then, best-effort, logs the enquiry to Airtable (guest database — see
+ * lib/airtable.js). A failure here never fails the request: the email is
+ * the part that must not be lost, Airtable logging is a nicety on top.
  *
  * Uses Resend's REST API over fetch so the site needs no dependencies
  * and no build step.
  *
  * Environment variables (set in Vercel):
- *   RESEND_API_KEY  required — from https://resend.com/api-keys
- *   ENQUIRY_TO      optional — defaults to info@atlanticaccommodation.co.za
- *   ENQUIRY_FROM    optional — must be on a Resend-verified domain.
- *                   Until atlanticaccommodation.co.za is verified, Resend only
- *                   allows onboarding@resend.dev.
+ *   RESEND_API_KEY   required — from https://resend.com/api-keys
+ *   ENQUIRY_TO       optional — defaults to info@atlanticaccommodation.co.za
+ *   ENQUIRY_FROM     optional — must be on a Resend-verified domain.
+ *                    Until atlanticaccommodation.co.za is verified, Resend only
+ *                    allows onboarding@resend.dev.
+ *   AIRTABLE_API_KEY / AIRTABLE_BASE_ID   optional — see lib/airtable.js.
+ *                    Enquiries still send by email without these; only the
+ *                    guest-database logging is skipped.
  */
+
+const { configured: airtableConfigured, createRecord } = require("../lib/airtable");
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const TURNSTILE_ENDPOINT = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
@@ -27,7 +35,16 @@ const MIN_FILL_MS = 2500;
 const PHONE = "+27 71 325 2574";
 const SITE = "www.atlanticaccommodation.co.za";
 
-const MAX = { name: 120, email: 200, phone: 60, property: 120, message: 4000, guests: 10, date: 30 };
+const MAX = {
+  firstName: 80,
+  surname: 80,
+  email: 200,
+  phone: 60,
+  property: 120,
+  message: 4000,
+  guests: 10,
+  date: 30
+};
 
 const esc = (s) =>
   String(s == null ? "" : s)
@@ -83,7 +100,7 @@ function ownerEmail(d) {
   <div style="max-width:620px;margin:0 auto;background:#fff;border:1px solid #ded9cf">
     <div style="padding:24px 28px;border-bottom:1px solid #ded9cf">
       <div style="color:#9a6a4a;font:500 11px/1 -apple-system,Segoe UI,sans-serif;text-transform:uppercase;letter-spacing:.2em">New booking enquiry</div>
-      <div style="margin-top:8px;color:#2e2b26;font:400 24px/1.2 Georgia,serif">${esc(d.name)}</div>
+      <div style="margin-top:8px;color:#2e2b26;font:400 24px/1.2 Georgia,serif">${esc(d.firstName)} ${esc(d.surname)}</div>
     </div>
     <div style="padding:20px 28px">
       <table style="border-collapse:collapse;width:100%">
@@ -103,14 +120,14 @@ function ownerEmail(d) {
       }
     </div>
     <div style="padding:16px 28px;background:#f7f5f1;border-top:1px solid #ded9cf;color:#6f6960;font:400 12px/1.5 -apple-system,Segoe UI,sans-serif">
-      Sent from ${SITE} &middot; reply directly to answer ${esc(d.name.split(" ")[0] || "the guest")}.
+      Sent from ${SITE} &middot; reply directly to answer ${esc(d.firstName || "the guest")}.
     </div>
   </div>
 </div>`;
 }
 
 function guestEmail(d) {
-  const first = esc((d.name || "").split(" ")[0] || "there");
+  const first = esc(d.firstName || "there");
   return `<div style="background:#f7f5f1;padding:32px">
   <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #ded9cf">
     <div style="padding:28px 30px;border-bottom:1px solid #ded9cf">
@@ -187,18 +204,22 @@ module.exports = async (req, res) => {
   }
 
   const d = {
-    name: clean(body.name, MAX.name),
+    firstName: clean(body.firstName, MAX.firstName),
+    surname: clean(body.surname, MAX.surname),
     email: clean(body.email, MAX.email),
     phone: clean(body.phone, MAX.phone),
     property: clean(body.property, MAX.property),
     checkin: clean(body.checkin, MAX.date),
     checkout: clean(body.checkout, MAX.date),
     guests: clean(body.guests, MAX.guests),
-    message: clean(body.message, MAX.message)
+    message: clean(body.message, MAX.message),
+    // Checkboxes are only present in the POST body at all when ticked — its
+    // mere presence (any value) means the guest opted in. Absent = not consented.
+    marketingConsent: Boolean(body.marketingConsent)
   };
 
-  if (!d.name || !d.email || !d.phone) {
-    return res.status(400).json({ error: "Please provide your name, email and phone." });
+  if (!d.firstName || !d.surname || !d.email || !d.phone) {
+    return res.status(400).json({ error: "Please provide your name, surname, email and phone." });
   }
   if (!isEmail(d.email)) {
     return res.status(400).json({ error: "That email address doesn't look right." });
@@ -210,12 +231,39 @@ module.exports = async (req, res) => {
       from: FROM,
       to: [TO],
       reply_to: d.email,
-      subject: `Booking enquiry — ${d.name}${d.property ? ` — ${d.property}` : ""}`,
+      subject: `Booking enquiry — ${d.firstName} ${d.surname}${d.property ? ` — ${d.property}` : ""}`,
       html: ownerEmail(d)
     });
   } catch (err) {
     console.error("Enquiry notification failed:", err.message);
     return res.status(502).json({ error: "We couldn't send your enquiry." });
+  }
+
+  // Guest-database logging (Airtable) — best-effort. Every enquiry is logged
+  // (that's the same operational record-keeping as the email above — fulfilling
+  // their request), but "Marketing Consent" is only true if they explicitly
+  // ticked the box. Only rows with that flag set should ever be used for
+  // marketing. Never fails the request: the enquiry email already delivered.
+  if (airtableConfigured()) {
+    try {
+      await createRecord({
+        "First Name": d.firstName,
+        Surname: d.surname,
+        Email: d.email,
+        Phone: d.phone,
+        Property: d.property || undefined,
+        "Check-in": d.checkin || undefined,
+        "Check-out": d.checkout || undefined,
+        Guests: d.guests ? Number(d.guests) : undefined,
+        Message: d.message || undefined,
+        "Marketing Consent": d.marketingConsent,
+        "Consent Recorded At": d.marketingConsent ? new Date().toISOString() : undefined,
+        "Confirmed Booking": false,
+        Source: "Website enquiry"
+      });
+    } catch (err) {
+      console.error("Airtable logging failed (enquiry still delivered):", err.message);
+    }
   }
 
   // Auto-reply is a nicety: never fail the request if it bounces.

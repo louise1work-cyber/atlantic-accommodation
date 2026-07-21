@@ -19,6 +19,10 @@ listing on **Airbnb**.
 | `contact.html` | Contact details + direct-booking enquiry form |
 | `assets/css/style.css` | All styling (quiet classic hospitality theme) |
 | `assets/js/main.js` | Mobile menu, scroll reveal, form handling |
+| `api/enquiry.js` | Enquiry form handler — email via Resend, logs to Airtable |
+| `api/ical/[property].js` | Per-property `.ics` calendar feed for Airbnb/Booking.com sync |
+| `lib/airtable.js` | Shared Airtable REST client |
+| `lib/ical.js` | iCalendar (.ics) file builder |
 
 ## Run it locally
 
@@ -75,6 +79,10 @@ placeholders reads as broken. Add more photos and they can use the `pd-hero` gal
    with `*` on the site. Confirm against the Airbnb listings.
 3. **Social links** — Facebook/Instagram in the footer point to `#`.
 4. **Enquiry form — needs `RESEND_API_KEY` set in Vercel.** Everything else is built.
+5. **Guest database & calendar sync — needs an Airtable base + `AIRTABLE_API_KEY` /
+   `AIRTABLE_BASE_ID` set in Vercel.** See "Guest database & calendar sync" below. Enquiries
+   still email fine without it; only the guest-database logging and the `.ics` feeds are skipped
+   (feeds return 503) until it's set up.
 
 ## The enquiry form
 
@@ -120,6 +128,113 @@ real bookings. Now **success only shows when Resend confirms the send**. Any fai
 the button and shows the email address and phone number so the guest still gets through.
 Guest input is HTML-escaped before going into the email, fields are length-capped. If the guest
 auto-reply fails, the request still succeeds — the enquiry itself already landed.
+
+## Guest database & calendar sync
+
+Two features share one Airtable base:
+
+1. **Every enquiry is logged** to a guest database (name, surname, email, phone, property,
+   dates, message) — for operational record-keeping and, only where the guest opts in, future
+   email marketing.
+2. **Confirmed direct bookings generate a live `.ics` calendar feed** per property, which Airbnb
+   and Booking.com can import to block those dates automatically — see "Three-way calendar sync"
+   below.
+
+Both are **best-effort and optional**: the site works fully without either configured (enquiries
+still email through Resend; the calendar feed just returns 503 until it's set up).
+
+### Why Airtable, not a database
+
+The repo is **public** — guest personal information can never live in a file in it. A real,
+access-controlled store is required. Airtable was chosen over a conventional database
+specifically because it's also meant to be Louise's own marketing list and booking-confirmation
+tool: she can open it, filter, export, and confirm a booking by ticking a checkbox, with no
+admin panel to build and no need to ask a developer to run a query.
+
+### Setting it up
+
+1. Create a free account at https://airtable.com and a new base (call it "Atlantic Accommodation").
+2. In that base, create one table named exactly **`Bookings`** with these fields (name and type
+   must match exactly — the API writes/reads these names literally):
+
+   | Field name | Type |
+   |---|---|
+   | `First Name` | Single line text |
+   | `Surname` | Single line text |
+   | `Email` | Email |
+   | `Phone` | Phone number |
+   | `Property` | Single select — options: `Atlantic Crew House`, `Atlantic Beach Cottage`, `Atlantic Apartment`, `Atlantic Seaview Dolphin Beach` |
+   | `Check-in` | Date |
+   | `Check-out` | Date |
+   | `Guests` | Number |
+   | `Message` | Long text |
+   | `Marketing Consent` | Checkbox |
+   | `Consent Recorded At` | Single line text (an ISO timestamp — kept as text to avoid Airtable's date-field timezone handling) |
+   | `Confirmed Booking` | Checkbox |
+   | `Source` | Single line text |
+
+3. Create a personal access token at https://airtable.com/create/tokens, scoped to this base
+   with `data.records:read` and `data.records:write`.
+4. Set it in Vercel yourself, so it never lands in the repo or a chat transcript:
+   ```bash
+   vercel env add AIRTABLE_API_KEY production
+   vercel env add AIRTABLE_BASE_ID production
+   ```
+   (The base ID is in the base's API documentation page, starts with `app`.)
+5. Push or redeploy. From then on every enquiry appears as a new row in Airtable.
+
+### Confirming a booking (this drives the calendar feed)
+
+There's no booking-confirmation UI built into the site on purpose — Airtable already has one.
+Once you've confirmed a direct booking by phone or email:
+
+1. Find (or create) that guest's row in Airtable.
+2. Fill in / correct **Check-in** and **Check-out** if they changed.
+3. Tick **Confirmed Booking**.
+
+That's it — the calendar feed for that property picks it up automatically (cached up to 15
+minutes; see below).
+
+### Three-way calendar sync (Airbnb ↔ Booking.com ↔ direct)
+
+Each property has a feed at:
+
+```
+https://www.atlanticaccommodation.co.za/api/ical/crew-house.ics
+https://www.atlanticaccommodation.co.za/api/ical/beach-cottage.ics
+https://www.atlanticaccommodation.co.za/api/ical/apartment.ics
+https://www.atlanticaccommodation.co.za/api/ical/seaview-dolphin-beach.ics
+```
+
+It lists every row in Airtable for that property where **Confirmed Booking** is ticked, as
+blocked all-day date ranges — nothing else. No guest name, email, or phone is ever included in
+this feed (it's handed to two external platforms, so it carries the same amount of information
+their own export feeds do: dates only).
+
+To wire up full 3-way sync, for **each** property:
+
+1. **Airbnb** → that listing → Calendar → Availability settings → Sync calendars → paste this
+   site's `.ics` URL under "Import calendar", and also import **Booking.com's** export URL there.
+2. **Booking.com** → Extranet → Calendar → Sync calendars → import **Airbnb's** export URL and
+   this site's `.ics` URL.
+3. Nothing to configure on the "direct" side beyond ticking **Confirmed Booking** in Airtable —
+   this site's feed only ever needs to be read by the other two, never the reverse.
+
+**Honest limitation, not something this fixes:** both platforms poll imported calendars on their
+own schedule, not instantly — Airbnb roughly every 1–2 hours, Booking.com up to 24. There's a
+real (if small, for enquiry-based rather than instant-book properties) window where a booking on
+one platform hasn't blocked the others yet. Upgrading that requires a paid channel manager with
+direct API access (Lodgify, Uplisting) — worth revisiting only if that lag ever actually causes
+a clash.
+
+### POPIA (consent)
+
+The marketing-consent checkbox on the enquiry form is **unticked by default** and entirely
+optional — leaving it unticked doesn't block the enquiry. Every enquiry is still logged to
+Airtable regardless (that's the same operational record-keeping as sending the email — fulfilling
+the guest's own request), but **only rows with `Marketing Consent` = true should ever be used to
+send marketing**. The consent timestamp is recorded alongside it. No unsubscribe flow exists yet
+because no marketing is being sent yet — build one before the first campaign, not before.
 
 ## Anti-spam
 

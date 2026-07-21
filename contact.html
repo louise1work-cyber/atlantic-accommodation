@@ -89,17 +89,23 @@
           <p style="color:var(--muted);margin-bottom:1.6rem">Fields marked * are required.</p>
           <div class="field-row">
             <div class="field">
-              <label for="name">Full name *</label>
-              <input type="text" id="name" name="name" required autocomplete="name" />
+              <label for="firstName">First name *</label>
+              <input type="text" id="firstName" name="firstName" required autocomplete="given-name" />
             </div>
+            <div class="field">
+              <label for="surname">Surname *</label>
+              <input type="text" id="surname" name="surname" required autocomplete="family-name" />
+            </div>
+          </div>
+          <div class="field-row">
             <div class="field">
               <label for="phone">Phone *</label>
               <input type="tel" id="phone" name="phone" required autocomplete="tel" />
             </div>
-          </div>
-          <div class="field">
-            <label for="email">Email *</label>
-            <input type="email" id="email" name="email" required autocomplete="email" />
+            <div class="field">
+              <label for="email">Email *</label>
+              <input type="email" id="email" name="email" required autocomplete="email" />
+            </div>
           </div>
           <div class="field">
             <label for="property">Which property?</label>
@@ -129,6 +135,10 @@
             <label for="message">Message</label>
             <textarea id="message" name="message" placeholder="Tell us about your trip — dates, group, and anything you'd like to know."></textarea>
           </div>
+          <label class="field-check">
+            <input type="checkbox" id="marketingConsent" name="marketingConsent" />
+            <span>Yes, keep me updated with special offers and news from Atlantic Accommodation by email. Optional — this won't affect your enquiry, and you can unsubscribe at any time.</span>
+          </label>
           <div class="cf-turnstile" data-turnstile hidden style="margin-bottom:1rem"></div>
           <div class="form-error" data-form-error role="alert" hidden></div>
           <button type="submit" class="btn btn--primary btn--block" data-submit>Send enquiry</button>
