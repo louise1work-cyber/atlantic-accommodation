@@ -22,6 +22,7 @@ listing on **Airbnb**.
 | `api/enquiry.js` | Enquiry form handler — email via Resend, logs to Airtable |
 | `api/ical/[property].js` | Per-property `.ics` calendar feed for Airbnb/Booking.com sync |
 | `api/pay/[recordId].js` | Generates a PayFast payment link for one confirmed booking |
+| `api/rates.js` | Optional "from R X" pricing feed, read from an Airtable Rates table |
 | `api/pay/webhook.js` | PayFast ITN handler — verifies and records a completed payment |
 | `payment-success.html` / `payment-cancelled.html` | Where PayFast returns the guest to |
 | `lib/airtable.js` | Shared Airtable REST client |
@@ -198,6 +199,29 @@ not something that should be generated on your behalf):
    # value: appIDnBM5wgOamVEg
    ```
 3. Push or redeploy. From then on every enquiry appears as a new row in Airtable.
+
+### Showing a "from R X" price (optional, off by default)
+
+Every property page currently shows **"Enquire — for rates & availability"** instead of a
+number, because rates change too often to hardcode into the page. If that ever changes, there's
+already a wired-up path to show a real price **without touching any HTML** — you'd only ever
+edit a number in Airtable, the same way you already do for bookings.
+
+1. In the same Airtable base, create one more table named exactly **`Rates`** with these fields:
+
+   | Field name | Type |
+   |---|---|
+   | `Property` | Single line text — must exactly match one of the 4 property names used in `Bookings` (e.g. `Atlantic Crew House`) |
+   | `From Price` | Currency (ZAR) |
+   | `Per` | Single select — options: `night`, `week` |
+
+2. Add a row for any property you want a price shown for. Leave a property with no row (or no
+   `From Price`) and its page keeps showing "Enquire" — nothing changes until you fill it in.
+3. That's it — no redeploy needed. Each property page reads `/api/rates` (cached 15 minutes) and
+   swaps in "From R{amount} — per night/week" automatically once a value exists.
+
+This is entirely optional and fails silently: if the `Rates` table doesn't exist yet, or a
+property has no row, the page is unaffected — it just shows "Enquire" as it does today.
 
 ### Confirming a booking (this drives the calendar feed)
 

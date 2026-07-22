@@ -126,6 +126,23 @@
     }
   }
 
+  /* Optional "from R X" pricing — reads /api/rates (backed by an Airtable Rates
+     table). Until a rate is set for a property this stays untouched, so the
+     page keeps showing "Enquire — for rates & availability" by default. */
+  var rateBox = document.querySelector("[data-rate]");
+  if (rateBox) {
+    var property = rateBox.getAttribute("data-rate");
+    fetch("/api/rates")
+      .then(function (res) { return res.ok ? res.json() : {}; })
+      .then(function (rates) {
+        var rate = rates && rates[property];
+        if (!rate || !(rate.fromPrice > 0)) return;
+        var amount = Math.round(rate.fromPrice).toLocaleString("en-ZA");
+        rateBox.innerHTML = "<b>From R" + amount + "</b><span>per " + (rate.per === "week" ? "week" : "night") + "</span>";
+      })
+      .catch(function () { /* keep the Enquire fallback */ });
+  }
+
   /* Footer year */
   var yr = document.querySelector("[data-year]");
   if (yr) yr.textContent = new Date().getFullYear();
