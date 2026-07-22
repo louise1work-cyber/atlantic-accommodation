@@ -83,7 +83,7 @@ placeholders reads as broken. Add more photos and they can use the `pd-hero` gal
    with `*` on the site. Confirm against the Airbnb listings.
 3. **Social links** — Facebook/Instagram in the footer point to `#`.
 4. **Enquiry form — needs `RESEND_API_KEY` set in Vercel.** Everything else is built.
-5. **Guest database & calendar sync — needs an Airtable base + `AIRTABLE_API_KEY` /
+5. **Guest database & calendar sync — base is built, just needs `AIRTABLE_API_KEY` /
    `AIRTABLE_BASE_ID` set in Vercel.** See "Guest database & calendar sync" below. Enquiries
    still email fine without it; only the guest-database logging and the `.ics` feeds are skipped
    (feeds return 503) until it's set up.
@@ -161,9 +161,9 @@ admin panel to build and no need to ask a developer to run a query.
 
 ### Setting it up
 
-1. Create a free account at https://airtable.com and a new base (call it "Atlantic Accommodation").
-2. In that base, create one table named exactly **`Bookings`** with these fields (name and type
-   must match exactly — the API writes/reads these names literally):
+The base already exists — built 2026-07-22 via an Airtable MCP connector: base **"Atlantic
+Accommodation"** (`appIDnBM5wgOamVEg`), table **`Bookings`** (`tbl7PZ6t3TxhKkWgI`), with these
+fields already created (name and type match exactly — the API writes/reads these names literally):
 
    | Field name | Type |
    |---|---|
@@ -184,15 +184,20 @@ admin panel to build and no need to ask a developer to run a query.
    | `Payment Status` | Single select — options: `Not Requested`, `Requested`, `Paid` |
    | `PF Payment ID` | Single line text — PayFast fills this in automatically once paid |
 
-3. Create a personal access token at https://airtable.com/create/tokens, scoped to this base
+Only two steps are left, and both are yours to do (a personal access token is a credential —
+not something that should be generated on your behalf):
+
+1. Create a personal access token at https://airtable.com/create/tokens, scoped to this base
    with `data.records:read` and `data.records:write`.
-4. Set it in Vercel yourself, so it never lands in the repo or a chat transcript:
+2. Set these in Vercel yourself, so nothing lands in the repo or a chat transcript:
    ```bash
    vercel env add AIRTABLE_API_KEY production
+   # paste the token you just created
+
    vercel env add AIRTABLE_BASE_ID production
+   # value: appIDnBM5wgOamVEg
    ```
-   (The base ID is in the base's API documentation page, starts with `app`.)
-5. Push or redeploy. From then on every enquiry appears as a new row in Airtable.
+3. Push or redeploy. From then on every enquiry appears as a new row in Airtable.
 
 ### Confirming a booking (this drives the calendar feed)
 
