@@ -46,7 +46,7 @@ For **Vercel**: `npm i -g vercel` then run `vercel` in this folder — no build 
 ## What's placeholder vs. confirmed
 
 **Confirmed:**
-- Phone **+27 71 325 2574** and the address **Club Mykonos, Agora Square, Langebaan, 7357**
+- Phone **+27 72 251 7390** and the address **Club Mykonos, Agora Square, Langebaan, 7357**
   (both from atlanticyachting.co.za — same owners)
 - Email **info@atlanticaccommodation.co.za** — the rentals-branded address, set 2026-07-15,
   replacing the original `info@atlanticyachting.co.za`

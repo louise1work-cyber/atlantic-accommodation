@@ -34,7 +34,7 @@
   var ENDPOINT = "/api/enquiry";
   var FALLBACK =
     'Please email <a href="mailto:info@atlanticaccommodation.co.za">info@atlanticaccommodation.co.za</a> ' +
-    'or call <a href="tel:+27713252574">+27 71 325 2574</a> and we\'ll pick it up right away.';
+    'or call <a href="tel:+27722517390">+27 72 251 7390</a> and we\'ll pick it up right away.';
 
   var form = document.querySelector("[data-enquiry]");
   if (form) {

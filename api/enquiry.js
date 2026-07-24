@@ -33,7 +33,7 @@ const FROM = process.env.ENQUIRY_FROM || "Atlantic Accommodation <onboarding@res
 // Reject anything submitted faster than a human could fill the form.
 const MIN_FILL_MS = 2500;
 
-const PHONE = "+27 71 325 2574";
+const PHONE = "+27 72 251 7390";
 const SITE = "www.atlanticaccommodation.co.za";
 
 const MAX = {
@@ -145,7 +145,7 @@ function guestEmail(d) {
             }.</p>`
           : ""
       }
-      <p style="margin:0 0 14px">If it's urgent, call us on <a href="tel:+27713252574" style="color:#9a6a4a">${PHONE}</a>.</p>
+      <p style="margin:0 0 14px">If it's urgent, call us on <a href="tel:+27722517390" style="color:#9a6a4a">${PHONE}</a>.</p>
       <p style="margin:22px 0 0;color:#6f6960">Louise<br/>Atlantic Accommodation</p>
     </div>
     <div style="padding:16px 30px;background:#f7f5f1;border-top:1px solid #ded9cf;color:#6f6960;font:400 12px/1.5 -apple-system,Segoe UI,sans-serif">

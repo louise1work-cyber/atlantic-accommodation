@@ -34,7 +34,7 @@ function errorPage(title, message) {
 <body style="font-family:system-ui,sans-serif;max-width:480px;margin:80px auto;padding:0 24px;color:#2e2b26;text-align:center">
 <h1 style="font-size:1.4rem">${esc(title)}</h1>
 <p style="color:#6f6960">${esc(message)}</p>
-<p><a href="tel:+27713252574">+27 71 325 2574</a> &middot; <a href="mailto:info@atlanticaccommodation.co.za">info@atlanticaccommodation.co.za</a></p>
+<p><a href="tel:+27722517390">+27 72 251 7390</a> &middot; <a href="mailto:info@atlanticaccommodation.co.za">info@atlanticaccommodation.co.za</a></p>
 </body></html>`;
 }
 
