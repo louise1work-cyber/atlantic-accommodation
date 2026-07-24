@@ -143,6 +143,39 @@
       .catch(function () { /* keep the Enquire fallback */ });
   }
 
+  /* Property-location map with tabs (Langebaan) — Google's no-API-key embed
+     format (`output=embed`), so no Cloud project/billing setup is needed.
+     Pins are approximate-area (matching how holiday rentals usually handle
+     this), sourced from Louise's own Google Maps links, not guessed. */
+  var LOC_MAP_PINS = {
+    "crew-house": { name: "Atlantic Crew House", lat: -33.0483861, lng: 18.0494144 },
+    "beach-cottage": { name: "Atlantic Beach Cottage", lat: -33.0833287, lng: 18.0320084 },
+    "apartment": { name: "Atlantic Apartment", lat: -33.0918692, lng: 18.033316 }
+  };
+  document.querySelectorAll("[data-loc-map]").forEach(function (widget) {
+    var frame = widget.querySelector("[data-loc-frame]");
+    var tabs = widget.querySelectorAll("[data-loc-tab]");
+    if (!frame || !tabs.length) return;
+
+    var activate = function (key) {
+      var pin = LOC_MAP_PINS[key];
+      if (!pin) return;
+      tabs.forEach(function (t) {
+        var isActive = t.getAttribute("data-loc-tab") === key;
+        t.classList.toggle("is-active", isActive);
+        t.setAttribute("aria-selected", isActive ? "true" : "false");
+      });
+      frame.src = "https://www.google.com/maps?q=" + pin.lat + "," + pin.lng + "&z=15&output=embed";
+      frame.title = "Map showing " + pin.name + " in Langebaan";
+    };
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () { activate(tab.getAttribute("data-loc-tab")); });
+    });
+
+    activate(widget.getAttribute("data-loc-map") || tabs[0].getAttribute("data-loc-tab"));
+  });
+
   /* Footer year */
   var yr = document.querySelector("[data-year]");
   if (yr) yr.textContent = new Date().getFullYear();

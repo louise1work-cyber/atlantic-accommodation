@@ -226,6 +226,19 @@ p  { margin: 0 0 1.1rem; }
 .ph--wide { aspect-ratio: 16 / 9; }
 .ph--hero { aspect-ratio: 4 / 5; border-radius: var(--radius); }
 
+/* ---------- Property location map — tabs + embedded map, no API key ---------- */
+.loc-map { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.loc-map__tabs { display: flex; flex-wrap: wrap; gap: .5rem; padding: .9rem; background: var(--panel); border-bottom: 1px solid var(--line); }
+.loc-map__tab {
+  font: 500 .68rem/1 var(--font-body); text-transform: uppercase; letter-spacing: .1em;
+  padding: .55rem .9rem; border-radius: var(--radius-pill);
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink-soft);
+  cursor: pointer;
+}
+.loc-map__tab:hover { border-color: var(--deep); color: var(--deep); }
+.loc-map__tab.is-active { background: var(--deep); border-color: var(--deep); color: #fff; }
+.loc-map__frame { display: block; width: 100%; height: 320px; border: 0; }
+
 /* ---------- Grid ---------- */
 .grid { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
 .grid--3 { grid-template-columns: repeat(3, 1fr); }

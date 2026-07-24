@@ -78,20 +78,38 @@ placeholders reads as broken. Add more photos and they can use the `pd-hero` gal
 `crew-house.html` does.
 
 **Still outstanding:**
-1. **Maps** — "Map Coming Soon" placeholders on the four property pages and the contact page;
-   embed Google Maps if wanted.
-2. **Bed / bath / guest counts** for Beach Cottage, Apartment and Seaview are estimates, marked
+1. **Bed / bath / guest counts** for Beach Cottage, Apartment and Seaview are estimates, marked
    with `*` on the site. Confirm against the Airbnb listings.
-3. **Social links** — Facebook/Instagram in the footer point to `#`.
-4. **Enquiry form — needs `RESEND_API_KEY` set in Vercel.** Everything else is built.
-5. **Guest database & calendar sync — Supabase project is built, just needs
-   `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` set in Vercel.** See "Guest database & calendar
-   sync" below. Enquiries still email fine without it; only the guest-database logging and the
-   `.ics` feeds are skipped (feeds return 503) until it's set up.
-6. **Payment — needs a PayFast account + `PAYFAST_MERCHANT_ID` / `PAYFAST_MERCHANT_KEY` /
+2. **Social links** — Facebook/Instagram in the footer point to `#`.
+3. **Payment — needs a PayFast account + `PAYFAST_MERCHANT_ID` / `PAYFAST_MERCHANT_KEY` /
    `PAYFAST_PASSPHRASE` set in Vercel.** See "Taking payment (PayFast)" below. Defaults to
    PayFast's sandbox until `PAYFAST_MODE=live` is set deliberately — test a real sandbox
    transaction first.
+
+## Property location maps
+
+Each of the three Langebaan property pages (Crew House, Beach Cottage, Apartment) and the contact
+page show the same tabbed map — click a tab and the embedded map re-centres on that property.
+Seaview (Dolphin Beach, Cape Town) gets its own single, un-tabbed map on its own page, since it's
+a different city entirely.
+
+**No Google Cloud project, API key, or billing setup needed** — this uses Google's plain
+`output=embed` share-link format (the same URL you get from a place's own "Share → Embed a map"),
+not the Maps JavaScript API. Zero cost, zero setup.
+
+**Pins are approximate-area, not exact addresses** — deliberately, per Louise (2026-07-24): a
+common practice for holiday rentals, so an exact address isn't public before someone actually
+books. Each pin is sourced from a real Google Maps link Louise provided, not guessed:
+
+| Property | Approximate area used | Coordinates |
+|---|---|---|
+| Atlantic Crew House | near Club Mykonos / Laguna Mall | `-33.0483861, 18.0494144` |
+| Atlantic Beach Cottage | its own Google Maps Place listing | `-33.0833287, 18.0320084` |
+| Atlantic Apartment | the block of flats it's in | `-33.0918692, 18.033316` |
+| Atlantic Seaview | Dolphin Beach Hotel (nearby landmark) | `-33.82961, 18.4815182` |
+
+To change a pin, edit `LOC_MAP_PINS` in `assets/js/main.js` (for the 3 Langebaan properties) or
+the iframe `src` directly in `properties/seaview-dolphin-beach.html` (standalone, no JS).
 
 ## The enquiry form
 
