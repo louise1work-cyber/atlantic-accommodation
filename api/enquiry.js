@@ -4,9 +4,10 @@
  * Sends two emails via Resend:
  *   1. the enquiry to the owners, with reply-to set to the guest
  *   2. an instant branded confirmation to the guest
- * Then, best-effort, logs the enquiry to Airtable (guest database — see
- * lib/airtable.js). A failure here never fails the request: the email is
- * the part that must not be lost, Airtable logging is a nicety on top.
+ * Then, best-effort, upserts the guest into Supabase and logs a timestamped
+ * enquiry row against them (guest database — see lib/supabase.js). A failure
+ * here never fails the request: the email is the part that must not be lost,
+ * the database log is a nicety on top.
  *
  * Uses Resend's REST API over fetch so the site needs no dependencies
  * and no build step.
@@ -17,12 +18,12 @@
  *   ENQUIRY_FROM     optional — must be on a Resend-verified domain.
  *                    Until atlanticaccommodation.co.za is verified, Resend only
  *                    allows onboarding@resend.dev.
- *   AIRTABLE_API_KEY / AIRTABLE_BASE_ID   optional — see lib/airtable.js.
+ *   SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY   optional — see lib/supabase.js.
  *                    Enquiries still send by email without these; only the
  *                    guest-database logging is skipped.
  */
 
-const { configured: airtableConfigured, createRecord } = require("../lib/airtable");
+const { configured: supabaseConfigured, upsertClient, createEnquiry } = require("../lib/supabase");
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const TURNSTILE_ENDPOINT = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
@@ -239,30 +240,31 @@ module.exports = async (req, res) => {
     return res.status(502).json({ error: "We couldn't send your enquiry." });
   }
 
-  // Guest-database logging (Airtable) — best-effort. Every enquiry is logged
+  // Guest-database logging (Supabase) — best-effort. Every enquiry is logged
   // (that's the same operational record-keeping as the email above — fulfilling
-  // their request), but "Marketing Consent" is only true if they explicitly
-  // ticked the box. Only rows with that flag set should ever be used for
-  // marketing. Never fails the request: the enquiry email already delivered.
-  if (airtableConfigured()) {
+  // their request), but "Marketing Consent" on the client is only ever moved to
+  // true, never back to false, by upsertClient — so it's safe to pass through
+  // whatever this form submission said. Never fails the request: the enquiry
+  // email already delivered.
+  if (supabaseConfigured()) {
     try {
-      await createRecord({
-        "First Name": d.firstName,
-        Surname: d.surname,
-        Email: d.email,
-        Phone: d.phone,
-        Property: d.property || undefined,
-        "Check-in": d.checkin || undefined,
-        "Check-out": d.checkout || undefined,
-        Guests: d.guests ? Number(d.guests) : undefined,
-        Message: d.message || undefined,
-        "Marketing Consent": d.marketingConsent,
-        "Consent Recorded At": d.marketingConsent ? new Date().toISOString() : undefined,
-        "Confirmed Booking": false,
-        Source: "Website enquiry"
+      const clientId = await upsertClient({
+        firstName: d.firstName,
+        surname: d.surname,
+        email: d.email,
+        phone: d.phone,
+        marketingConsent: d.marketingConsent
+      });
+      await createEnquiry(clientId, {
+        property: d.property || undefined,
+        checkin: d.checkin || undefined,
+        checkout: d.checkout || undefined,
+        guests: d.guests ? Number(d.guests) : undefined,
+        message: d.message || undefined,
+        source: "Website enquiry"
       });
     } catch (err) {
-      console.error("Airtable logging failed (enquiry still delivered):", err.message);
+      console.error("Supabase logging failed (enquiry still delivered):", err.message);
     }
   }
 

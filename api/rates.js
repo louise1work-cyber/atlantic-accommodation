@@ -3,12 +3,12 @@
  *
  * Best-effort and fail-soft by design: property pages default to "Enquire — for
  * rates & availability" and only switch to a shown price once a row exists for
- * that property in the Rates table. Airtable being unconfigured, the Rates table
- * not existing yet, or any read error all produce the same result — an empty
+ * that property in the rates table. Supabase being unconfigured, the table
+ * being empty, or any read error all produce the same result — an empty
  * object — so a page never shows an error, just the existing Enquire fallback.
  */
 
-const { configured, listRates } = require("../lib/airtable");
+const { configured, listRates } = require("../lib/supabase");
 
 module.exports = async (req, res) => {
   if (req.method !== "GET") {
@@ -27,11 +27,10 @@ module.exports = async (req, res) => {
     const records = await listRates();
     const rates = {};
     for (const record of records) {
-      const fields = record.fields || {};
-      const property = fields["Property"];
-      const fromPrice = Number(fields["From Price"]);
+      const property = record.property;
+      const fromPrice = Number(record.from_price);
       if (!property || !(fromPrice > 0)) continue;
-      const per = fields["Per"] === "week" ? "week" : "night";
+      const per = record.per === "week" ? "week" : "night";
       rates[property] = { fromPrice, per };
     }
     res.status(200).json(rates);

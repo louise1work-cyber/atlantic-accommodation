@@ -20,7 +20,7 @@
  * $_POST array rather than raw bytes, so it isn't a shortcut.
  */
 
-const { getRecord, updateRecord } = require("../../lib/airtable");
+const { getBooking, updateBooking } = require("../../lib/supabase");
 const {
   verifyItnSignature,
   verifyItnSource,
@@ -79,8 +79,8 @@ module.exports = async (req, res) => {
   let expectedAmount = null;
   if (recordId) {
     try {
-      const record = await getRecord(recordId);
-      expectedAmount = record.fields && record.fields["Amount Due"];
+      const record = await getBooking(recordId);
+      expectedAmount = record && record.amount_due;
     } catch (err) {
       console.error("Could not look up expected amount:", err.message);
     }
@@ -111,12 +111,12 @@ module.exports = async (req, res) => {
 
   if (fields.payment_status === "COMPLETE" && recordId) {
     try {
-      await updateRecord(recordId, {
-        "Payment Status": "Paid",
-        "PF Payment ID": fields.pf_payment_id || ""
+      await updateBooking(recordId, {
+        payment_status: "Paid",
+        pf_payment_id: fields.pf_payment_id || ""
       });
     } catch (err) {
-      console.error("Verified payment but failed to update Airtable — needs manual follow-up:", err.message, { recordId });
+      console.error("Verified payment but failed to update Supabase — needs manual follow-up:", err.message, { recordId });
     }
   }
 

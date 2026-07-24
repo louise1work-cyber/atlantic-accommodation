@@ -126,7 +126,7 @@
     }
   }
 
-  /* Optional "from R X" pricing — reads /api/rates (backed by an Airtable Rates
+  /* Optional "from R X" pricing — reads /api/rates (backed by a Supabase rates
      table). Until a rate is set for a property this stays untouched, so the
      page keeps showing "Enquire — for rates & availability" by default. */
   var rateBox = document.querySelector("[data-rate]");

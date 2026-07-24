@@ -19,13 +19,13 @@ listing on **Airbnb**.
 | `contact.html` | Contact details + direct-booking enquiry form |
 | `assets/css/style.css` | All styling (quiet classic hospitality theme) |
 | `assets/js/main.js` | Mobile menu, scroll reveal, form handling |
-| `api/enquiry.js` | Enquiry form handler — email via Resend, logs to Airtable |
+| `api/enquiry.js` | Enquiry form handler — email via Resend, logs to Supabase |
 | `api/ical/[property].js` | Per-property `.ics` calendar feed for Airbnb/Booking.com sync |
 | `api/pay/[recordId].js` | Generates a PayFast payment link for one confirmed booking |
-| `api/rates.js` | Optional "from R X" pricing feed, read from an Airtable Rates table |
+| `api/rates.js` | Optional "from R X" pricing feed, read from a Supabase `rates` table |
 | `api/pay/webhook.js` | PayFast ITN handler — verifies and records a completed payment |
 | `payment-success.html` / `payment-cancelled.html` | Where PayFast returns the guest to |
-| `lib/airtable.js` | Shared Airtable REST client |
+| `lib/supabase.js` | Shared Supabase REST client (guest database, bookings, rates) |
 | `lib/ical.js` | iCalendar (.ics) file builder |
 | `lib/payfast.js` | PayFast signing, verification and payment-field builder |
 
@@ -84,10 +84,10 @@ placeholders reads as broken. Add more photos and they can use the `pd-hero` gal
    with `*` on the site. Confirm against the Airbnb listings.
 3. **Social links** — Facebook/Instagram in the footer point to `#`.
 4. **Enquiry form — needs `RESEND_API_KEY` set in Vercel.** Everything else is built.
-5. **Guest database & calendar sync — base is built, just needs `AIRTABLE_API_KEY` /
-   `AIRTABLE_BASE_ID` set in Vercel.** See "Guest database & calendar sync" below. Enquiries
-   still email fine without it; only the guest-database logging and the `.ics` feeds are skipped
-   (feeds return 503) until it's set up.
+5. **Guest database & calendar sync — Supabase project is built, just needs
+   `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` set in Vercel.** See "Guest database & calendar
+   sync" below. Enquiries still email fine without it; only the guest-database logging and the
+   `.ics` feeds are skipped (feeds return 503) until it's set up.
 6. **Payment — needs a PayFast account + `PAYFAST_MERCHANT_ID` / `PAYFAST_MERCHANT_KEY` /
    `PAYFAST_PASSPHRASE` set in Vercel.** See "Taking payment (PayFast)" below. Defaults to
    PayFast's sandbox until `PAYFAST_MODE=live` is set deliberately — test a real sandbox
@@ -140,97 +140,120 @@ auto-reply fails, the request still succeeds — the enquiry itself already land
 
 ## Guest database & calendar sync
 
-Two features share one Airtable base:
+Three things share one Supabase project:
 
-1. **Every enquiry is logged** to a guest database (name, surname, email, phone, property,
-   dates, message) — for operational record-keeping and, only where the guest opts in, future
-   email marketing.
+1. **Every enquiry builds a client profile** — not just a log line. Guests are deduplicated by
+   email into a `clients` table, and every contact they've ever made is kept as its own timestamped
+   row in `enquiries`, linked to that client. The point is future communication that isn't cold:
+   Louise can see, for one guest, every property they've asked about, when they last got in touch,
+   and any notes she's added — not just their most recent message.
 2. **Confirmed direct bookings generate a live `.ics` calendar feed** per property, which Airbnb
    and Booking.com can import to block those dates automatically — see "Three-way calendar sync"
    below.
+3. **Optional "from R X" pricing** — see below.
 
-Both are **best-effort and optional**: the site works fully without either configured (enquiries
-still email through Resend; the calendar feed just returns 503 until it's set up).
+All three are **best-effort and optional**: the site works fully without Supabase configured
+(enquiries still email through Resend; the calendar feed just returns 503 until it's set up).
 
-### Why Airtable, not a database
+### Why Supabase, not Airtable
 
-The repo is **public** — guest personal information can never live in a file in it. A real,
-access-controlled store is required. Airtable was chosen over a conventional database
-specifically because it's also meant to be Louise's own marketing list and booking-confirmation
-tool: she can open it, filter, export, and confirm a booking by ticking a checkbox, with no
-admin panel to build and no need to ask a developer to run a query.
+This started on Airtable (simple, no-code, good enough for a flat guest list) and moved to
+**Supabase** — a real hosted Postgres database — specifically to support a proper CRM shape:
+one persistent record per guest with their full contact history against it, rather than one flat
+row per enquiry with no memory of earlier contact from the same person. Airtable *can* do this
+with linked records, but Supabase makes the "one client, many enquiries, full timestamped
+history" relationship a first-class part of the schema instead of something bolted on. It's still
+completely free at this scale, and **Supabase Studio** (the web dashboard) gives Louise the same
+kind of no-code table view Airtable did — browse, filter, edit a cell, add a note — without ever
+touching code.
 
-### Setting it up
+The repo is **public**, so this data can never live in a file in it — Row Level Security is
+enabled on every table with no anon/public policies, so the *only* key that can read or write
+this data is the `service_role` secret key, which lives solely in Vercel's environment variables.
 
-The base already exists — built 2026-07-22 via an Airtable MCP connector: base **"Atlantic
-Accommodation"** (`appIDnBM5wgOamVEg`), table **`Bookings`** (`tbl7PZ6t3TxhKkWgI`), with these
-fields already created (name and type match exactly — the API writes/reads these names literally):
+### The schema
 
-   | Field name | Type |
-   |---|---|
-   | `First Name` | Single line text |
-   | `Surname` | Single line text |
-   | `Email` | Email |
-   | `Phone` | Phone number |
-   | `Property` | Single select — options: `Atlantic Crew House`, `Atlantic Beach Cottage`, `Atlantic Apartment`, `Atlantic Seaview Dolphin Beach` |
-   | `Check-in` | Date |
-   | `Check-out` | Date |
-   | `Guests` | Number |
-   | `Message` | Long text |
-   | `Marketing Consent` | Checkbox |
-   | `Consent Recorded At` | Single line text (an ISO timestamp — kept as text to avoid Airtable's date-field timezone handling) |
-   | `Confirmed Booking` | Checkbox |
-   | `Source` | Single line text |
-   | `Amount Due` | Currency (ZAR) — set once you've agreed a price, see "Taking payment" below |
-   | `Payment Status` | Single select — options: `Not Requested`, `Requested`, `Paid` |
-   | `PF Payment ID` | Single line text — PayFast fills this in automatically once paid |
+Project: **`atlantic-accommodation`** (ref `wxurpvcmtfacgxzqnqnq`, region `eu-west-1`), built
+2026-07-24. Three tables in the `public` schema:
 
-Only two steps are left, and both are yours to do (a personal access token is a credential —
-not something that should be generated on your behalf):
+**`clients`** — one row per guest, deduplicated by email:
 
-1. Create a personal access token at https://airtable.com/create/tokens, scoped to this base
-   with `data.records:read` and `data.records:write`.
+   | Column | Type | Notes |
+   |---|---|---|
+   | `id` | uuid, primary key | |
+   | `first_name` / `surname` | text | |
+   | `email` | text, unique | how guests are deduplicated across visits |
+   | `phone` | text | |
+   | `marketing_consent` | boolean | only ever moves **false → true**, never silently reverted — see POPIA below |
+   | `consent_recorded_at` | timestamptz | when consent was given |
+   | `notes` | text | **freeform — Louise's own space** in Supabase Studio for anything worth remembering: an occasion, a preference, "always books Crew House", a quirk from a phone call. This is the main lever for making future contact feel personal rather than templated |
+   | `first_contacted_at` | timestamptz | set once, on creation |
+   | `last_contacted_at` | timestamptz | bumped automatically by a database trigger every time a new enquiry comes in |
+   | `created_at` / `updated_at` | timestamptz | |
+
+**`enquiries`** — one row per contact, the timestamped history behind each client:
+
+   | Column | Type | Notes |
+   |---|---|---|
+   | `id` | uuid, primary key | this is the ID used in PayFast payment links |
+   | `client_id` | uuid, references `clients` | |
+   | `property` / `check_in` / `check_out` / `guests` / `message` | | what they asked about |
+   | `source` | text | e.g. `Website enquiry` |
+   | `confirmed_booking` | boolean | ticking this is what drives the `.ics` feed |
+   | `amount_due` | numeric | set once a price is agreed, see "Taking payment" |
+   | `payment_status` | text | `Not Requested` / `Requested` / `Paid` |
+   | `pf_payment_id` | text | PayFast fills this in automatically once paid |
+   | `created_at` | timestamptz | **the exact timestamp of this contact** — set automatically, this is the full history a client's profile is built from |
+
+**`rates`** — optional per-property pricing, see below.
+
+Nothing else to build here — the project, tables, triggers and security are already live. The
+only remaining step is yours (a service-role key is a credential — not something generated on
+your behalf):
+
+1. In the [Supabase dashboard](https://supabase.com/dashboard/project/wxurpvcmtfacgxzqnqnq) →
+   **Project Settings → API**, copy the **`service_role`** secret key (not the `anon`/publishable
+   one — that one can't write past Row Level Security).
 2. Set these in Vercel yourself, so nothing lands in the repo or a chat transcript:
    ```bash
-   vercel env add AIRTABLE_API_KEY production
-   # paste the token you just created
+   vercel env add SUPABASE_URL production
+   # value: https://wxurpvcmtfacgxzqnqnq.supabase.co
 
-   vercel env add AIRTABLE_BASE_ID production
-   # value: appIDnBM5wgOamVEg
+   vercel env add SUPABASE_SERVICE_ROLE_KEY production
+   # paste the service_role secret key you just copied
    ```
-3. Push or redeploy. From then on every enquiry appears as a new row in Airtable.
+3. Push or redeploy. From then on every enquiry creates or updates a client and logs a new
+   timestamped enquiry row.
 
 ### Showing a "from R X" price (optional, off by default)
 
 Every property page currently shows **"Enquire — for rates & availability"** instead of a
 number, because rates change too often to hardcode into the page. If that ever changes, there's
 already a wired-up path to show a real price **without touching any HTML** — you'd only ever
-edit a number in Airtable, the same way you already do for bookings.
+edit a number in Supabase Studio.
 
-1. In the same Airtable base, create one more table named exactly **`Rates`** with these fields:
+The `rates` table already exists with these columns: `property` (text, must exactly match one of
+the 4 property names used in `enquiries`, e.g. `Atlantic Crew House`), `from_price` (numeric),
+`per` (`night` or `week`). It has no rows yet, so every property still shows "Enquire". To switch
+one on:
 
-   | Field name | Type |
-   |---|---|
-   | `Property` | Single line text — must exactly match one of the 4 property names used in `Bookings` (e.g. `Atlantic Crew House`) |
-   | `From Price` | Currency (ZAR) |
-   | `Per` | Single select — options: `night`, `week` |
+1. In Supabase Studio's table editor, add a row for that property with its `from_price` and `per`.
+2. That's it — no redeploy needed. Each property page reads `/api/rates` (cached 15 minutes) and
+   swaps in "From R{amount} — per night/week" automatically once the row exists. Leave a property
+   with no row (or no price) and its page just keeps showing "Enquire".
 
-2. Add a row for any property you want a price shown for. Leave a property with no row (or no
-   `From Price`) and its page keeps showing "Enquire" — nothing changes until you fill it in.
-3. That's it — no redeploy needed. Each property page reads `/api/rates` (cached 15 minutes) and
-   swaps in "From R{amount} — per night/week" automatically once a value exists.
-
-This is entirely optional and fails silently: if the `Rates` table doesn't exist yet, or a
-property has no row, the page is unaffected — it just shows "Enquire" as it does today.
+This is entirely optional and fails silently: if Supabase isn't configured, the `rates` table is
+empty, or a property has no row, the page is unaffected — it just shows "Enquire" as it does today.
 
 ### Confirming a booking (this drives the calendar feed)
 
-There's no booking-confirmation UI built into the site on purpose — Airtable already has one.
-Once you've confirmed a direct booking by phone or email:
+There's no booking-confirmation UI built into the site on purpose — Supabase Studio's table
+editor already is one. Once you've confirmed a direct booking by phone or email:
 
-1. Find (or create) that guest's row in Airtable.
-2. Fill in / correct **Check-in** and **Check-out** if they changed.
-3. Tick **Confirmed Booking**.
+1. Find that guest's enquiry row in the `enquiries` table (or their client record in `clients` if
+   you want to see their full history first).
+2. Fill in / correct **`check_in`** and **`check_out`** if they changed.
+3. Tick **`confirmed_booking`**.
 
 That's it — the calendar feed for that property picks it up automatically (cached up to 15
 minutes; see below).
@@ -269,15 +292,15 @@ charges exactly that amount.
 
 ### Using it
 
-1. Confirm the booking in Airtable as above.
-2. Fill in **Amount Due** with the agreed price (in rand).
-3. Send the guest this link (swap in that row's Airtable record ID — visible in Airtable's own
-   URL/UI for that row):
+1. Confirm the booking in Supabase as above.
+2. Fill in **`amount_due`** on that enquiry row with the agreed price (in rand).
+3. Send the guest this link (swap in that row's `id` — visible in Supabase Studio's table editor,
+   or by clicking into the row):
    ```
-   https://www.atlanticaccommodation.co.za/api/pay/recXXXXXXXXXXXXXX
+   https://www.atlanticaccommodation.co.za/api/pay/00000000-0000-0000-0000-000000000000
    ```
-4. The guest is redirected into PayFast's checkout. Once they pay, **`Payment Status` updates to
-   `Paid` in Airtable automatically** — PayFast confirms this to the site directly (the ITN
+4. The guest is redirected into PayFast's checkout. Once they pay, **`payment_status` updates to
+   `Paid` in Supabase automatically** — PayFast confirms this to the site directly (the ITN
    webhook, `api/pay/webhook.js`), it isn't based on the guest simply reaching the "thank you"
    page, which anyone could navigate to without paying.
 
@@ -308,7 +331,7 @@ https://www.atlanticaccommodation.co.za/api/ical/apartment.ics
 https://www.atlanticaccommodation.co.za/api/ical/seaview-dolphin-beach.ics
 ```
 
-It lists every row in Airtable for that property where **Confirmed Booking** is ticked, as
+It lists every row in Supabase for that property where **`confirmed_booking`** is true, as
 blocked all-day date ranges — nothing else. No guest name, email, or phone is ever included in
 this feed (it's handed to two external platforms, so it carries the same amount of information
 their own export feeds do: dates only).
@@ -319,7 +342,7 @@ To wire up full 3-way sync, for **each** property:
    site's `.ics` URL under "Import calendar", and also import **Booking.com's** export URL there.
 2. **Booking.com** → Extranet → Calendar → Sync calendars → import **Airbnb's** export URL and
    this site's `.ics` URL.
-3. Nothing to configure on the "direct" side beyond ticking **Confirmed Booking** in Airtable —
+3. Nothing to configure on the "direct" side beyond ticking **`confirmed_booking`** in Supabase —
    this site's feed only ever needs to be read by the other two, never the reverse.
 
 **Honest limitation, not something this fixes:** both platforms poll imported calendars on their
@@ -333,10 +356,13 @@ a clash.
 
 The marketing-consent checkbox on the enquiry form is **unticked by default** and entirely
 optional — leaving it unticked doesn't block the enquiry. Every enquiry is still logged to
-Airtable regardless (that's the same operational record-keeping as sending the email — fulfilling
-the guest's own request), but **only rows with `Marketing Consent` = true should ever be used to
-send marketing**. The consent timestamp is recorded alongside it. No unsubscribe flow exists yet
-because no marketing is being sent yet — build one before the first campaign, not before.
+Supabase regardless (that's the same operational record-keeping as sending the email — fulfilling
+the guest's own request), but **only clients with `marketing_consent` = true should ever be used
+to send marketing**. The consent timestamp is recorded alongside it on the client record, and —
+because consent lives on the client, not the individual enquiry — it only ever moves from false to
+true; a later enquiry from the same person with the box left unticked can't silently erase consent
+they already gave. No unsubscribe flow exists yet because no marketing is being sent yet — build
+one before the first campaign, not before.
 
 ## Anti-spam
 

@@ -6,17 +6,17 @@
  * listing, and their platforms will block these dates automatically. Their own
  * export URLs go the other way (imported into each other) — see README.
  *
- * Source of truth is Airtable: rows in the Bookings table with
- * "Confirmed Booking" ticked. Untick or delete a row to unblock those dates.
+ * Source of truth is Supabase: enquiries rows with confirmed_booking = true.
+ * Untick (set false) or delete a row to unblock those dates.
  *
  * No guest information is exposed here — see lib/ical.js.
  */
 
-const { configured, listConfirmedBookings } = require("../../lib/airtable");
+const { configured, listConfirmedBookings } = require("../../lib/supabase");
 const { buildCalendar } = require("../../lib/ical");
 
-// URL slug -> exact Airtable "Property" single-select value (must match exactly,
-// same display names used in contact.html's property <select>).
+// URL slug -> exact Supabase "property" value (must match exactly, same
+// display names used in contact.html's property <select>).
 const PROPERTIES = {
   "crew-house": "Atlantic Crew House",
   "beach-cottage": "Atlantic Beach Cottage",
@@ -39,7 +39,7 @@ module.exports = async (req, res) => {
   }
 
   if (!configured()) {
-    console.error("Airtable is not configured (AIRTABLE_API_KEY / AIRTABLE_BASE_ID)");
+    console.error("Supabase is not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)");
     return res.status(503).json({ error: "Calendar feed is not configured yet." });
   }
 
@@ -47,14 +47,14 @@ module.exports = async (req, res) => {
   try {
     records = await listConfirmedBookings(propertyName);
   } catch (err) {
-    console.error("Airtable read failed:", err.message);
+    console.error("Supabase read failed:", err.message);
     return res.status(502).json({ error: "Could not read the calendar right now." });
   }
 
   const bookings = records.map((r) => ({
     id: r.id,
-    checkin: r.fields && r.fields["Check-in"],
-    checkout: r.fields && r.fields["Check-out"]
+    checkin: r.check_in,
+    checkout: r.check_out
   }));
 
   const ics = buildCalendar(propertyName, bookings);
@@ -62,7 +62,7 @@ module.exports = async (req, res) => {
   res.setHeader("Content-Type", "text/calendar; charset=utf-8");
   res.setHeader("Content-Disposition", `inline; filename="${slug}.ics"`);
   // Airbnb/Booking.com poll every 1-24h at best, so a short edge cache just
-  // spares Airtable from being hit on every request without adding real lag.
+  // spares Supabase from being hit on every request without adding real lag.
   res.setHeader("Cache-Control", "public, max-age=900, s-maxage=900");
   return res.status(200).send(ics);
 };
