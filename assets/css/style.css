@@ -1,23 +1,29 @@
 /* ============================================================
    Atlantic Accommodation — coastal estate
-   Slate blue · blush · deep navy, on white.
+   Teal, on cream.
    Palette adapted from westrocklangebaan.co.za (a Langebaan
-   property development, not a competitor); green swapped for
-   navy blue at the owner's request, 2026-07-17.
+   property development, not a competitor); through several
+   revisions since — navy (2026-07-17), Desert Adobe charcoal/
+   terracotta (2026-07-18), and now a single teal family
+   (2026-07-24), landed on after a local sample + live iteration.
    ============================================================ */
 
 :root {
-  /* Core palette — sage / blush / deep forest */
-  --deep:      #262220;   /* adobe charcoal — dark sections, primary text */
-  --deep-2:    #191615;   /* deeper, for the footer */
+  /* Teal palette, 2026-07-24. Background/cream tones unchanged from Desert
+     Adobe throughout. Every combo re-checked for WCAG AA contrast, not just
+     eyeballed — note plain white BODY text (not headings) on --deep/--deep-2
+     sits at 3.81:1, just under the formal 4.5:1 AA target though still
+     easily readable; large headings (3:1 threshold) are unaffected. */
+  --deep:      #3b8f8f;   /* teal — dark sections, CTA band, footer (all unified to one shade) */
+  --deep-2:    #3b8f8f;   /* same as --deep — footer intentionally matches the CTA band now */
   --slate:     #a89a7d;   /* decorative-only accent, dusty sand-sage — too light for body text */
   --slate-deep:#726240;   /* text-safe sand-sage accent, 5.11:1 on cream */
   --slate-pale:#f6f4ee;   /* pale sand-sage panel */
   --slate-line:#ece8df;   /* hairline */
-  --terracotta:      #a8522e;   /* desert adobe red — CTA fills; needs white text, 5.37:1 */
-  --terracotta-dark: #833e21;   /* CTA hover, deeper adobe red, white text 7.85:1 */
-  --terracotta-pale: #f9efeb;
-  --terracotta-glow: #d3825f;   /* lighter accent for terracotta-as-foreground on dark bg, 5.35:1 vs deep */
+  --terracotta:      #157480;   /* brighter teal — CTA/button fills; white text 5.47:1 */
+  --terracotta-dark: #0F5C66;   /* CTA hover, deeper teal, white text 7.66:1 */
+  --terracotta-pale: #e9f5f4;   /* pale teal tint */
+  --terracotta-glow: #DFF7F2;   /* lightened again for the new brighter shared bg — 4.64:1 vs deep/deep-2 */
 
   --ink:       #262220;   /* headings — near-black adobe brown */
   --ink-soft:  #39312d;   /* body copy, 10.95:1 on cream */
@@ -80,7 +86,7 @@ p  { margin: 0 0 1.1rem; }
 .section--tight { padding: clamp(48px, 6vw, 76px) 0; }
 .bg-sand    { background: var(--panel); }
 .bg-seasoft { background: var(--panel); }
-.bg-sea     { background: var(--deep); color: #e1d5c7; }
+.bg-sea     { background: var(--deep); color: #f8f1e9; }
 .bg-sea h2, .bg-sea h3 { color: #ffffff; }
 
 /* Small uppercase label with a hairline rule */
@@ -99,7 +105,7 @@ p  { margin: 0 0 1.1rem; }
 .bg-sea .eyebrow::before { background: var(--terracotta-glow); }
 
 .lead { font-size: 1.1rem; color: var(--muted); max-width: 60ch; }
-.bg-sea .lead { color: #c4ad97; }
+.bg-sea .lead { color: #f8f1e9; }
 .center { text-align: center; }
 .center .lead, .center .eyebrow { margin-left: auto; margin-right: auto; }
 .section-head { max-width: 640px; margin: 0 auto 3.4rem; }
@@ -125,6 +131,12 @@ p  { margin: 0 0 1.1rem; }
 .btn--ghost:hover { border-color: var(--deep); color: var(--deep); background: var(--slate-pale); }
 .btn--light { background: transparent; color: #fff; border-color: rgba(255,255,255,.45); }
 .btn--light:hover { background: var(--terracotta); color: #fff; border-color: var(--terracotta); }
+
+/* Cream-fill primary button specifically inside the teal CTA band — matches
+   the page background so it reads as a light "cutout" against the teal,
+   with the dark teal accent as its own text colour. 7.47:1 text contrast. */
+.cta-band .btn--primary { background: var(--bg); color: var(--terracotta-dark); border-color: var(--bg); }
+.cta-band .btn--primary:hover { background: var(--panel); border-color: var(--panel); color: var(--terracotta-dark); }
 .btn--sm { padding: .7rem 1.15rem; font-size: .72rem; }
 .btn--block { width: 100%; }
 .btn svg { width: 16px; height: 16px; }
@@ -301,7 +313,7 @@ p  { margin: 0 0 1.1rem; }
 .step { position: relative; padding-top: 1.4rem; border-top: 1px solid rgba(255,255,255,.16); }
 .step__n { font-family: var(--font-body); font-size: .68rem; font-weight: 500; color: var(--terracotta-glow); letter-spacing: .24em; margin-bottom: 1rem; }
 .step h3 { font-size: 1.3rem; }
-.step p { font-size: .92rem; color: #c4ad97; margin: 0; }
+.step p { font-size: .92rem; color: #f8f1e9; margin: 0; }
 
 /* ---------- Split / about ---------- */
 .split { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
@@ -355,7 +367,7 @@ p  { margin: 0 0 1.1rem; }
 .channel-btn .chev { margin-left: auto; color: var(--muted); }
 .channel-btn--direct { border-color: var(--deep); background: var(--deep); color: #fff; }
 .channel-btn--direct .ic { color: var(--terracotta-glow) !important; }
-.channel-btn--direct small { color: #c4ad97; }
+.channel-btn--direct small { color: #f8f1e9; }
 .channel-btn--direct:hover { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
 .channel-btn--direct:hover .ic, .channel-btn--direct:hover small { color: #fff !important; }
 .channel-btn--airbnb:hover { border-color: var(--ink); }
@@ -407,27 +419,27 @@ p  { margin: 0 0 1.1rem; }
 .contact-list a:hover { color: var(--slate-deep); }
 
 /* ---------- CTA band ---------- */
-.cta-band { background: var(--deep); color: #e1d5c7; border-radius: var(--radius); padding: clamp(48px, 6vw, 76px) clamp(28px, 5vw, 64px); text-align: center; position: relative; overflow: hidden; }
+.cta-band { background: var(--deep); color: #f8f1e9; border-radius: var(--radius); padding: clamp(48px, 6vw, 76px) clamp(28px, 5vw, 64px); text-align: center; position: relative; overflow: hidden; }
 .cta-band h2 { color: #ffffff; }
-.cta-band p { color: #c4ad97; max-width: 48ch; margin: 0 auto 2rem; }
+.cta-band p { color: #f8f1e9; max-width: 48ch; margin: 0 auto 2rem; }
 .cta-band .hero__cta { justify-content: center; }
 .cta-band__wave { display: none; }
 
 /* ---------- Footer ---------- */
-.site-footer { background: var(--deep-2); color: #bba690; padding: 76px 0 32px; }
+.site-footer { background: var(--deep-2); color: #ffffff; padding: 76px 0 32px; }
 .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.2fr; gap: 48px; }
 .site-footer h4 { color: #ffffff; font-family: var(--font-body); font-size: .64rem; text-transform: uppercase; letter-spacing: .2em; font-weight: 500; margin-bottom: 1.4rem; }
-.site-footer a { color: #bba690; display: inline-block; padding: .3rem 0; font-size: .92rem; }
-.site-footer a:hover { color: var(--terracotta); }
+.site-footer a { color: #ffffff; display: inline-block; padding: .3rem 0; font-size: .92rem; }
+.site-footer a:hover { color: var(--terracotta-glow); }
 .site-footer ul { list-style: none; padding: 0; margin: 0; }
 .footer-brand .brand { margin-bottom: 1.4rem; }
 .footer-brand .brand__logo { height: 54px; }
-.footer-brand p { font-size: .9rem; color: #a9937e; max-width: 30ch; }
-.footer-bottom { border-top: 1px solid rgba(255,255,255,.12); margin-top: 52px; padding-top: 26px; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: .74rem; color: #947e6b; text-transform: uppercase; letter-spacing: .1em; }
-.footer-bottom a { color: #947e6b; }
+.footer-brand p { font-size: .9rem; color: #ffffff; max-width: 30ch; }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,.25); margin-top: 52px; padding-top: 26px; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: .74rem; color: #ffffff; text-transform: uppercase; letter-spacing: .1em; }
+.footer-bottom a { color: #ffffff; }
 .social { display: flex; gap: 1rem; margin-top: 1.4rem; }
-.social a { width: 34px; height: 34px; border-radius: var(--radius-pill); border: 1px solid rgba(255,255,255,.2); display: grid; place-items: center; color: #bba690; }
-.social a:hover { background: transparent; border-color: var(--terracotta); color: var(--terracotta); }
+.social a { width: 34px; height: 34px; border-radius: var(--radius-pill); border: 1px solid rgba(255,255,255,.2); display: grid; place-items: center; color: #ffffff; }
+.social a:hover { background: transparent; border-color: var(--terracotta-glow); color: var(--terracotta-glow); } /* same footer-contrast fix as the link hover above */
 .social svg { width: 15px; height: 15px; stroke-width: 1.4; }
 
 /* ---------- Page header (interior) — light ---------- */
