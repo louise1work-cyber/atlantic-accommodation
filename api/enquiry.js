@@ -137,7 +137,7 @@ function guestEmail(d) {
     </div>
     <div style="padding:28px 30px;color:#2e2b26;font:400 15px/1.7 -apple-system,Segoe UI,sans-serif">
       <p style="margin:0 0 14px">Hi ${first},</p>
-      <p style="margin:0 0 14px">Thank you for your enquiry — we've received it and will come back to you personally, usually within a day.</p>
+      <p style="margin:0 0 14px">Thank you for your enquiry – we've received it and will come back to you personally, usually within a day.</p>
       ${
         d.property
           ? `<p style="margin:0 0 14px">You asked about <strong>${esc(d.property)}</strong>${
@@ -232,7 +232,7 @@ module.exports = async (req, res) => {
       from: FROM,
       to: [TO],
       reply_to: d.email,
-      subject: `Booking enquiry — ${d.firstName} ${d.surname}${d.property ? ` — ${d.property}` : ""}`,
+      subject: `Booking enquiry – ${d.firstName} ${d.surname}${d.property ? ` – ${d.property}` : ""}`,
       html: ownerEmail(d)
     });
   } catch (err) {
@@ -274,7 +274,7 @@ module.exports = async (req, res) => {
       from: FROM,
       to: [d.email],
       reply_to: TO,
-      subject: "We've received your enquiry — Atlantic Accommodation",
+      subject: "We've received your enquiry – Atlantic Accommodation",
       html: guestEmail(d)
     });
   } catch (err) {

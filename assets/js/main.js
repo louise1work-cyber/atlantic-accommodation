@@ -109,7 +109,7 @@
         .catch(function () {
           button.disabled = false;
           button.textContent = label;
-          showError("Sorry — your enquiry didn't send. " + FALLBACK);
+          showError("Sorry – your enquiry didn't send. " + FALLBACK);
         });
     });
   }

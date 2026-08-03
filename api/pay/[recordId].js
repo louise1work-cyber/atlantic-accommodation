@@ -99,7 +99,7 @@ module.exports = async (req, res) => {
     mPaymentId: recordId,
     amount,
     itemName: propertyLabel,
-    itemDescription: dateRange ? `${propertyLabel} — ${dateRange}` : propertyLabel
+    itemDescription: dateRange ? `${propertyLabel} – ${dateRange}` : propertyLabel
   });
 
   // Best-effort: record that a payment was requested, so Supabase reflects
