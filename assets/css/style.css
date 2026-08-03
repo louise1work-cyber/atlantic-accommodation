@@ -172,12 +172,17 @@ p  { margin: 0 0 1.1rem; }
 .nav__cta .btn--ghost:hover { color: var(--slate-deep); }
 
 .nav__toggle {
-  display: flex; align-items: center; justify-content: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
   background: none; border: 0; cursor: pointer;
   width: 44px; height: 44px; padding: 10px;   /* 44px = minimum comfortable touch target */
   margin-right: -10px;                        /* keep the bars optically aligned to the edge */
 }
-.nav__toggle span { display: block; width: 22px; height: 1px; background: var(--ink); margin: 6px 0; transition: .25s var(--ease); }
+/* Bug fix: .nav__toggle was `display: flex` with no flex-direction, so the
+   three bars laid out as a horizontal ROW instead of stacking — they sat
+   on top of each other with no gap and visually collapsed into what read
+   as a single squashed line. flex-direction: column (+ gap, replacing the
+   old margin-based spacing which relied on flex row behavior) fixes it. */
+.nav__toggle span { display: block; width: 22px; height: 2px; background: var(--ink); transition: .25s var(--ease); }
 
 .site-header.open .nav__links {
   display: flex; flex-direction: column; align-items: stretch; position: absolute; top: 78px; left: 0; right: 0;
@@ -196,7 +201,13 @@ p  { margin: 0 0 1.1rem; }
 .hero { background: var(--bg); border-bottom: 1px solid var(--line); }
 .hero__inner {
   display: grid; grid-template-columns: 1fr 1fr; gap: 68px; align-items: center;
-  padding: clamp(64px, 8vw, 110px) 0;
+  /* padding-top/bottom only — NOT the `padding: X 0` shorthand this used to
+     be. That shorthand set left/right to 0 too, which silently overwrote
+     .container's own 0 28px side padding (same element, same specificity,
+     source order won) and left mobile hero text flush against the screen
+     edges with zero breathing room. Pre-existing bug, not introduced today. */
+  padding-top: clamp(64px, 8vw, 110px);
+  padding-bottom: clamp(64px, 8vw, 110px);
 }
 .hero h1 { color: var(--ink); margin-bottom: 1.4rem; }
 .hero h1 em { font-style: italic; }
