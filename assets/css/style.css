@@ -361,6 +361,8 @@ p  { margin: 0 0 1.1rem; }
 .pd-hero > .media { height: 100%; min-height: 0; }
 .pd-gallery-side { display: grid; grid-template-rows: 1fr 1fr; gap: 1px; min-height: 0; }
 .pd-gallery-side .media { min-height: 0; }
+.pd-more-photos { margin-top: 1px; }
+.pd-more-photos .media { border-radius: 0; }
 .pd-layout { display: grid; grid-template-columns: 1fr 340px; gap: 72px; align-items: start; }
 .pd-specs { display: flex; flex-wrap: wrap; gap: 2.4rem; padding: 1.6rem 0; background: transparent; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); border-radius: 0; margin: 2rem 0 2.4rem; }
 .pd-specs div { display: flex; align-items: center; gap: .7rem; font-weight: 500; color: var(--ink); font-family: var(--font-display); font-size: 1.4rem; }
