@@ -56,6 +56,8 @@ For **Vercel**: `npm i -g vercel` then run `vercel` in this folder — no build 
   - Apartment → https://www.airbnb.co.uk/rooms/51298261 (new listing, confirmed live 2026-08-12
     — the old `abnb.me/M9eAErSYOzb` link had gone dead; Airbnb button/tag restored site-wide)
 - Beach Cottage: 2 bedrooms, both en-suite → 2 bathrooms (corrected 2026-08-12, was shown as 1)
+- Apartment: 2 bedrooms, sleeps 4 per Airbnb (corrected 2026-08-12, was shown as 1 bed / sleeps 3).
+  Bathroom count still unconfirmed — left as a placeholder.
 - Crew House specs: 4 bed / 3 bath / sleeps 15, braai, fireplace, near Club Mykonos
 
 **Photography** — real photos are in `assets/img/`, sourced from the accommodation page on
