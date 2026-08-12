@@ -53,9 +53,8 @@ For **Vercel**: `npm i -g vercel` then run `vercel` in this folder — no build 
 - Airbnb links are live:
   - Beach Cottage → https://www.airbnb.co.uk/rooms/16727412
   - Seaview Dolphin Beach → https://www.airbnb.co.uk/rooms/1084129001354486118
-  - Apartment → listing removed (2026-08-12, `abnb.me/M9eAErSYOzb` now redirects to airbnb.com's
-    homepage). Airbnb booking button/tag removed site-wide for this property; "Book Direct" only.
-    Restore the Airbnb button if/when there's a live listing to link to.
+  - Apartment → https://www.airbnb.co.uk/rooms/51298261 (new listing, confirmed live 2026-08-12
+    — the old `abnb.me/M9eAErSYOzb` link had gone dead; Airbnb button/tag restored site-wide)
 - Beach Cottage: 2 bedrooms, both en-suite → 2 bathrooms (corrected 2026-08-12, was shown as 1)
 - Crew House specs: 4 bed / 3 bath / sleeps 15, braai, fireplace, near Club Mykonos
 
