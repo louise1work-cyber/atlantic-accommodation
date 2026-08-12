@@ -361,6 +361,10 @@ p  { margin: 0 0 1.1rem; }
 .pd-hero > .media { height: 100%; min-height: 0; }
 .pd-gallery-side { display: grid; grid-template-rows: 1fr 1fr; gap: 1px; min-height: 0; }
 .pd-gallery-side .media { min-height: 0; }
+.pd-gallery-side--3 { grid-template-rows: 1fr 1fr 1fr; }
+/* At the tablet breakpoint below, .pd-gallery-side switches to a 2-column
+   grid — with 3 photos that leaves an empty cell, so span the odd one out. */
+.pd-gallery-side--3 img:last-child { grid-column: 1 / -1; }
 .pd-more-photos { margin-top: 1px; }
 .pd-more-photos .media { border-radius: 0; }
 .pd-layout { display: grid; grid-template-columns: 1fr 340px; gap: 72px; align-items: start; }
