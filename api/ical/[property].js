@@ -14,15 +14,7 @@
 
 const { configured, listConfirmedBookings } = require("../../lib/supabase");
 const { buildCalendar } = require("../../lib/ical");
-
-// URL slug -> exact Supabase "property" value (must match exactly, same
-// display names used in contact.html's property <select>).
-const PROPERTIES = {
-  "crew-house": "Atlantic Crew House",
-  "beach-cottage": "Atlantic Beach Cottage",
-  apartment: "Atlantic Apartment",
-  "seaview-dolphin-beach": "Atlantic Seaview Dolphin Beach"
-};
+const { resolveProperty } = require("../../lib/properties");
 
 module.exports = async (req, res) => {
   if (req.method !== "GET" && req.method !== "HEAD") {
@@ -30,13 +22,11 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const raw = String((req.query && req.query.property) || "").trim();
-  const slug = raw.replace(/\.ics$/i, "");
-  const propertyName = PROPERTIES[slug];
-
-  if (!propertyName) {
+  const property = resolveProperty(req.query && req.query.property);
+  if (!property) {
     return res.status(404).json({ error: "Unknown property." });
   }
+  const { slug, name: propertyName } = property;
 
   if (!configured()) {
     console.error("Supabase is not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)");

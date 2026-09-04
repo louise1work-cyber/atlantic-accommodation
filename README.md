@@ -20,13 +20,16 @@ listing on **Airbnb**.
 | `assets/css/style.css` | All styling (quiet classic hospitality theme) |
 | `assets/js/main.js` | Mobile menu, scroll reveal, form handling |
 | `api/enquiry.js` | Enquiry form handler — email via Resend, logs to Supabase |
-| `api/ical/[property].js` | Per-property `.ics` calendar feed for Airbnb/Booking.com sync |
+| `api/ical/[property].js` | Per-property `.ics` calendar feed for Airbnb/Booking.com sync (outbound) |
+| `api/availability/[property].js` | Per-property blocked dates, Airbnb + direct merged (inbound) |
 | `api/pay/[recordId].js` | Generates a PayFast payment link for one confirmed booking |
 | `api/rates.js` | Optional "from R X" pricing feed, read from a Supabase `rates` table |
 | `api/pay/webhook.js` | PayFast ITN handler — verifies and records a completed payment |
 | `payment-success.html` / `payment-cancelled.html` | Where PayFast returns the guest to |
 | `lib/supabase.js` | Shared Supabase REST client (guest database, bookings, rates) |
-| `lib/ical.js` | iCalendar (.ics) file builder |
+| `lib/ical.js` | iCalendar (.ics) file builder (writes our feed) |
+| `lib/airbnb-ical.js` | iCalendar reader (parses Airbnb's feed back in) |
+| `lib/properties.js` | Shared slug -> property-name map used by both calendar routes |
 | `lib/payfast.js` | PayFast signing, verification and payment-field builder |
 
 ## Run it locally
@@ -368,11 +371,70 @@ To wire up full 3-way sync, for **each** property:
    this site's feed only ever needs to be read by the other two, never the reverse.
 
 **Honest limitation, not something this fixes:** both platforms poll imported calendars on their
-own schedule, not instantly — Airbnb roughly every 1–2 hours, Booking.com up to 24. There's a
+own schedule, not instantly — Airbnb every 3 hours (their own stated figure), Booking.com up to 24. There's a
 real (if small, for enquiry-based rather than instant-book properties) window where a booking on
 one platform hasn't blocked the others yet. Upgrading that requires a paid channel manager with
-direct API access (Lodgify, Uplisting) — worth revisiting only if that lag ever actually causes
-a clash.
+direct API access (Lodgify, Beds24, Uplisting) — worth revisiting only if that lag ever actually
+causes a clash, which realistically means the day a second platform starts taking instant bookings.
+
+Note that this lag applies **between the two platforms**. It does not apply to this site reading
+Airbnb — see below, where we control the polling interval ourselves.
+
+### Reading Airbnb back in (availability on our own pages)
+
+The `.ics` feed above only pushes outward. `api/availability/:property` pulls the other way, so
+the site knows which dates Airbnb has already taken:
+
+```
+https://www.atlanticaccommodation.co.za/api/availability/crew-house
+```
+
+```json
+{
+  "property": "Atlantic Crew House",
+  "slug": "crew-house",
+  "from": "2026-09-04",
+  "blocked": [{ "from": "2026-12-01", "to": "2026-12-09" }],
+  "sources": { "airbnb": "ok", "direct": "ok" },
+  "updated": "2026-09-04T13:22:07.401Z"
+}
+```
+
+It merges Airbnb's export with the confirmed direct bookings already in Supabase, drops anything
+in the past, and joins touching ranges (a checkout on the 5th followed by a check-in on the 5th is
+a turnover day, not a free night). **`to` is the checkout day and therefore exclusive** — that
+night is free — matching the DTEND semantics `lib/ical.js` already writes.
+
+**Setup — one Vercel environment variable per listing:**
+
+| Variable | Listing |
+| --- | --- |
+| `AIRBNB_ICAL_CREW_HOUSE` | Atlantic Crew House |
+| `AIRBNB_ICAL_BEACH_COTTAGE` | Atlantic Beach Cottage |
+| `AIRBNB_ICAL_APARTMENT` | Atlantic Apartment |
+| `AIRBNB_ICAL_SEAVIEW_DOLPHIN_BEACH` | Atlantic Seaview Dolphin Beach |
+
+Get each value from Airbnb → that listing → Calendar → Availability settings → Sync calendars →
+**Export calendar**. Treat the URL as a secret: anyone holding it can read that listing's blocked
+dates. It goes in Vercel env vars, never in the repo.
+
+Adding a fifth property means one row in `lib/properties.js` and one more env var — nothing else.
+
+**How the polling works.** Unlike Airbnb's 2–3 hour cycle, we set our own: the response carries a
+15-minute edge cache, so Airbnb is fetched at most four times an hour no matter how much traffic
+the site gets, and a page view is never blocked waiting on Airbnb. A failed read is cached for
+only 60 seconds so one blip doesn't leave the site stale for a quarter of an hour.
+
+**Fail-soft contract — important if you build UI on this.** `blocked` means *definitely taken*.
+Everything else means *enquire*, *not* *available*. If Airbnb is unreachable the route still
+returns 200 with `sources.airbnb: "error"` and whatever it could read, because the site's default
+posture is "send us your dates and we'll confirm" — degrading to that is safe, whereas showing a
+green "available" for a week Airbnb sold yesterday is not. Never invert this to render free dates.
+
+**Why this isn't fed back into the `.ics` feed.** The outbound feed exports direct bookings only.
+If it re-exported what it read from Airbnb, Airbnb would import its own blocks straight back, and
+any third channel added later would bounce dates around the loop indefinitely. Keep the two
+directions separate.
 
 ### POPIA (consent)
 
