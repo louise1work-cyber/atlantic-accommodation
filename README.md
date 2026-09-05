@@ -48,11 +48,20 @@ For **Vercel**: `npm i -g vercel` then run `vercel` in this folder — no build 
 ## What's placeholder vs. confirmed
 
 **Confirmed:**
-- Phone **+27 72 251 7390** and the address **Agora Square, Langebaan, 7357**
-  (both from atlanticyachting.co.za — same owners). "Club Mykonos" was dropped from the address
-  everywhere (JSON-LD, footers, "Find us", the enquiry email footer) on 2026-09-05, per Louise —
-  address fields only; the About section's "Atlantic Yachting at Club Mykonos" history mention
-  is untouched, since that's a narrative fact, not an address.
+- Phone **+27 72 251 7390** (same source as above, still shown site-wide). The postal address
+  **Agora Square, Langebaan, 7357** is confirmed too, but as of 2026-09-05 (per Louise) it's no
+  longer displayed anywhere visible — the footer's address line and contact.html's "Find us" item
+  were both removed site-wide, leaving only the invisible JSON-LD `PostalAddress` schema (kept for
+  local-SEO purposes, not user-facing). "Club Mykonos" had already been dropped from the address
+  text itself earlier the same day, before the whole display was removed. The About section's
+  "Atlantic Yachting at Club Mykonos" history mention is untouched — that's narrative, not an
+  address field.
+- **Social links** — Facebook and Instagram icons now appear in the footer on every page (added
+  2026-09-05), not just the homepage: `https://www.facebook.com/profile.php?id=100054578195109`
+  and `https://www.instagram.com/atlanticaccommodation/`.
+- **"On Airbnb" image tag** removed from the Beach Cottage and Apartment cards on the homepage and
+  `properties.html` (2026-09-05, per Louise) — the "Book on Airbnb" buttons/chips on each property's
+  own page and card are untouched, only the small badge overlaid on the card photo is gone.
 - Email **info@atlanticaccommodation.co.za** — the rentals-branded address, set 2026-07-15,
   replacing the original `info@atlanticyachting.co.za`
 - Airbnb links are live:

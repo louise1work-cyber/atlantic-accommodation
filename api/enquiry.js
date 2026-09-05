@@ -149,7 +149,7 @@ function guestEmail(d) {
       <p style="margin:22px 0 0;color:#6f6960">Hayley<br/>Atlantic Accommodation</p>
     </div>
     <div style="padding:16px 30px;background:#f7f5f1;border-top:1px solid #ded9cf;color:#6f6960;font:400 12px/1.5 -apple-system,Segoe UI,sans-serif">
-      ${SITE} &middot; Agora Square, Langebaan, 7357
+      ${SITE}
     </div>
   </div>
 </div>`;
