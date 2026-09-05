@@ -148,7 +148,6 @@
      Pins are approximate-area (matching how holiday rentals usually handle
      this), sourced from Louise's own Google Maps links, not guessed. */
   var LOC_MAP_PINS = {
-    "crew-house": { name: "Atlantic Crew House", lat: -33.0483861, lng: 18.0494144 },
     "beach-cottage": { name: "Atlantic Beach Cottage", lat: -33.0833287, lng: 18.0320084 },
     "apartment": { name: "Atlantic Apartment", lat: -33.0918692, lng: 18.033316 }
   };

@@ -11,8 +11,7 @@ listing on **Airbnb**.
 | File | Purpose |
 |------|---------|
 | `index.html` | Home — hero, featured properties, "2 ways to book", how-it-works, about |
-| `properties.html` | All four properties with booking channels |
-| `properties/crew-house.html` | Atlantic Crew House (Langebaan, sleeps 15) |
+| `properties.html` | All three listed properties with booking channels |
 | `properties/beach-cottage.html` | Atlantic Beach Cottage (Langebaan) |
 | `properties/apartment.html` | Atlantic Apartment (Langebaan) |
 | `properties/seaview-dolphin-beach.html` | Atlantic Seaview (Dolphin Beach, Cape Town) |
@@ -61,7 +60,18 @@ For **Vercel**: `npm i -g vercel` then run `vercel` in this folder — no build 
 - Beach Cottage: 2 bedrooms, both en-suite → 2 bathrooms (corrected 2026-08-12, was shown as 1)
 - Apartment: 2 bedrooms, sleeps 4 per Airbnb (corrected 2026-08-12, was shown as 1 bed / sleeps 3).
   Bathroom count still unconfirmed — left as a placeholder.
-- Crew House specs: 4 bed / 3 bath / sleeps 15, braai, fireplace, near Club Mykonos
+
+**Crew House removed from the site (2026-09-05), per Louise.** It no longer appears anywhere
+public-facing — homepage, properties.html, nav/footer links, the contact form's property dropdown,
+the location-map tabs, and `properties/crew-house.html` itself are all gone; `sitemap.xml` no
+longer lists it either. Its specs were 4 bed / 3 bath / sleeps 15, braai, fireplace, near Club
+Mykonos, kept here only for history.
+
+**Deliberately left in place:** `lib/properties.js`'s `crew-house` entry, `api/ical/crew-house.ics`,
+`api/availability/crew-house`, the `AIRBNB_ICAL_CREW_HOUSE` env var, its Supabase `enquiries` rows,
+and the four `crew-house*.jpg` assets. The property may still be an active Airbnb listing outside
+this site, so its calendar sync keeps running quietly rather than breaking a setup the owner might
+still depend on. Tear these out too if the owner confirms the listing itself is gone.
 
 **Photography** — real photos are in `assets/img/`, sourced from the accommodation page on
 atlanticyachting.co.za (same owners) and re-encoded from PNG to JPEG (8.2 MB → 2.3 MB).
@@ -70,19 +80,16 @@ higher-resolution originals when available.
 
 | File | Shows |
 |---|---|
-| `crew-house.jpg` | Crew House — covered patio / pergola |
-| `crew-house-kitchen.jpg` | Crew House — open-plan kitchen & dining |
-| `crew-house-lounge.jpg` | Crew House — TV lounge |
-| `crew-house-bedroom.jpg` | Crew House — twin bedroom (**not currently used**) |
 | `beach-cottage.jpg` | Beach Cottage — patio at dusk (also the homepage hero) |
 | `apartment.jpg` | Apartment — open-plan living |
 | `dolphin-beach.jpg` | Seaview — living area |
 | `langebaan-lagoon.jpg` | Lagoon panorama (About section) |
 
-Only the Crew House has enough photos for a gallery. The other three have one photo each, so their
-detail pages show a single full-width image — deliberately, since one real photo beside grey
-placeholders reads as broken. Add more photos and they can use the `pd-hero` gallery like
-`crew-house.html` does.
+`crew-house.jpg`, `crew-house-kitchen.jpg`, `crew-house-lounge.jpg` and `crew-house-bedroom.jpg`
+are now unused — orphaned by the 2026-09-05 removal above, left in place rather than deleted in
+case the property comes back. Beach Cottage and the Apartment each have a full `pd-hero` +
+grid photo gallery; Seaview is still the one property on a single full-width image, pending more
+photos from the owner.
 
 **Still outstanding:**
 1. **Bed / bath / guest counts** for Beach Cottage, Apartment and Seaview are estimates, marked
@@ -95,7 +102,7 @@ placeholders reads as broken. Add more photos and they can use the `pd-hero` gal
 
 ## Property location maps
 
-Each of the three Langebaan property pages (Crew House, Beach Cottage, Apartment) and the contact
+Each of the two remaining Langebaan property pages (Beach Cottage, Apartment) and the contact
 page show the same tabbed map — click a tab and the embedded map re-centres on that property.
 Seaview (Dolphin Beach, Cape Town) gets its own single, un-tabbed map on its own page, since it's
 a different city entirely.
@@ -110,12 +117,11 @@ books. Each pin is sourced from a real Google Maps link Louise provided, not gue
 
 | Property | Approximate area used | Coordinates |
 |---|---|---|
-| Atlantic Crew House | near Club Mykonos / Laguna Mall | `-33.0483861, 18.0494144` |
 | Atlantic Beach Cottage | its own Google Maps Place listing | `-33.0833287, 18.0320084` |
 | Atlantic Apartment | the block of flats it's in | `-33.0918692, 18.033316` |
 | Atlantic Seaview | Dolphin Beach Hotel (nearby landmark) | `-33.82961, 18.4815182` |
 
-To change a pin, edit `LOC_MAP_PINS` in `assets/js/main.js` (for the 3 Langebaan properties) or
+To change a pin, edit `LOC_MAP_PINS` in `assets/js/main.js` (for the Langebaan properties) or
 the iframe `src` directly in `properties/seaview-dolphin-beach.html` (standalone, no JS).
 
 ## The enquiry form
@@ -355,6 +361,9 @@ https://www.atlanticaccommodation.co.za/api/ical/beach-cottage.ics
 https://www.atlanticaccommodation.co.za/api/ical/apartment.ics
 https://www.atlanticaccommodation.co.za/api/ical/seaview-dolphin-beach.ics
 ```
+
+(Crew House's feed above still works even though the property was removed from the public site
+on 2026-09-05 — see "What's placeholder vs. confirmed".)
 
 It lists every row in Supabase for that property where **`confirmed_booking`** is true, as
 blocked all-day date ranges — nothing else. No guest name, email, or phone is ever included in
