@@ -69,9 +69,13 @@ Mykonos, kept here only for history.
 
 **Deliberately left in place:** `lib/properties.js`'s `crew-house` entry, `api/ical/crew-house.ics`,
 `api/availability/crew-house`, the `AIRBNB_ICAL_CREW_HOUSE` env var, its Supabase `enquiries` rows,
-and the four `crew-house*.jpg` assets. The property may still be an active Airbnb listing outside
-this site, so its calendar sync keeps running quietly rather than breaking a setup the owner might
-still depend on. Tear these out too if the owner confirms the listing itself is gone.
+and the four `crew-house*.jpg` assets. The property is still an active Airbnb listing outside this
+site, so its calendar sync keeps running quietly rather than breaking a setup the owner still
+depends on. Tear these out too if the owner confirms the Airbnb listing itself is gone.
+
+**No `BOOKING_ICAL_CREW_HOUSE` and never will be, per Louise (2026-09-05): Crew House isn't listed
+on Booking.com at all.** `/api/availability/crew-house` reporting `sources.booking: "unconfigured"`
+is therefore permanent and correct for this one property, not a setup step still pending.
 
 **Photography** — real photos are in `assets/img/`, sourced from the accommodation page on
 atlanticyachting.co.za (same owners) and re-encoded from PNG to JPEG (8.2 MB → 2.3 MB).
