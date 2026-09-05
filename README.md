@@ -48,8 +48,11 @@ For **Vercel**: `npm i -g vercel` then run `vercel` in this folder — no build 
 ## What's placeholder vs. confirmed
 
 **Confirmed:**
-- Phone **+27 72 251 7390** and the address **Club Mykonos, Agora Square, Langebaan, 7357**
-  (both from atlanticyachting.co.za — same owners)
+- Phone **+27 72 251 7390** and the address **Agora Square, Langebaan, 7357**
+  (both from atlanticyachting.co.za — same owners). "Club Mykonos" was dropped from the address
+  everywhere (JSON-LD, footers, "Find us", the enquiry email footer) on 2026-09-05, per Louise —
+  address fields only; the About section's "Atlantic Yachting at Club Mykonos" history mention
+  is untouched, since that's a narrative fact, not an address.
 - Email **info@atlanticaccommodation.co.za** — the rentals-branded address, set 2026-07-15,
   replacing the original `info@atlanticyachting.co.za`
 - Airbnb links are live:
@@ -57,9 +60,17 @@ For **Vercel**: `npm i -g vercel` then run `vercel` in this folder — no build 
   - Seaview Dolphin Beach → https://www.airbnb.co.uk/rooms/1084129001354486118
   - Apartment → https://www.airbnb.co.uk/rooms/51298261 (new listing, confirmed live 2026-08-12
     — the old `abnb.me/M9eAErSYOzb` link had gone dead; Airbnb button/tag restored site-wide)
+- Booking.com links are live too (added 2026-09-05), same three properties — button on each
+  property's booking card and a chip on its `properties.html` card:
+  - Beach Cottage → https://www.booking.com/hotel/za/atlantic-beach-cottage.html
+  - Seaview Dolphin Beach → https://www.booking.com/hotel/za/dolphin-beach-atlantic-sea-view-spacious-amp-light.html
+  - Apartment → https://www.booking.com/hotel/za/atlantic-apartment-spacious-kite-accommodation.html
+  - Crew House has no Booking.com listing — no link added, see below.
 - Beach Cottage: 2 bedrooms, both en-suite → 2 bathrooms (corrected 2026-08-12, was shown as 1)
 - Apartment: 2 bedrooms, sleeps 4 per Airbnb (corrected 2026-08-12, was shown as 1 bed / sleeps 3).
   Bathroom count still unconfirmed — left as a placeholder.
+- Seaview Dolphin Beach: 1 bedroom, 1 bathroom, sleeps 2 (corrected 2026-09-05, per Louise — was
+  shown as 2 bed / 2 bath / sleeps 4). No longer a placeholder; asterisks removed from its specs.
 
 **Crew House removed from the site (2026-09-05), per Louise.** It no longer appears anywhere
 public-facing — homepage, properties.html, nav/footer links, the contact form's property dropdown,
@@ -96,10 +107,9 @@ grid photo gallery; Seaview is still the one property on a single full-width ima
 photos from the owner.
 
 **Still outstanding:**
-1. **Bed / bath / guest counts** for Beach Cottage, Apartment and Seaview are estimates, marked
-   with `*` on the site. Confirm against the Airbnb listings.
-2. **Social links** — Facebook/Instagram in the footer point to `#`.
-3. **Payment — needs a PayFast account + `PAYFAST_MERCHANT_ID` / `PAYFAST_MERCHANT_KEY` /
+1. **Apartment's bathroom count** is still an estimate, marked with `*` on the site. Beach Cottage
+   and Seaview are both confirmed now; Apartment's is the only one left to check against Airbnb.
+2. **Payment — needs a PayFast account + `PAYFAST_MERCHANT_ID` / `PAYFAST_MERCHANT_KEY` /
    `PAYFAST_PASSPHRASE` set in Vercel.** See "Taking payment (PayFast)" below. Defaults to
    PayFast's sandbox until `PAYFAST_MODE=live` is set deliberately — test a real sandbox
    transaction first.

@@ -322,6 +322,7 @@ p  { margin: 0 0 1.1rem; }
 .chip:hover { border-color: var(--ink); color: var(--ink); background: transparent; }
 .chip svg { width: 13px; height: 13px; }
 .chip--airbnb:hover { border-color: var(--ink); color: var(--ink); background: transparent; }
+.chip--booking:hover { border-color: var(--ink); color: var(--ink); background: transparent; }
 .chip--direct { background: var(--deep); border-color: var(--deep); color: #fff; }
 .chip--direct:hover { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
 
@@ -402,6 +403,7 @@ p  { margin: 0 0 1.1rem; }
 .channel-btn--direct:hover { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
 .channel-btn--direct:hover .ic, .channel-btn--direct:hover small { color: #fff !important; }
 .channel-btn--airbnb:hover { border-color: var(--ink); }
+.channel-btn--booking:hover { border-color: var(--ink); }
 
 /* ---------- Forms ---------- */
 .form-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: none; padding: clamp(28px, 4vw, 46px); }
