@@ -48,6 +48,13 @@ For **Vercel**: `npm i -g vercel` then run `vercel` in this folder — no build 
 ## What's placeholder vs. confirmed
 
 **Confirmed:**
+- **Brand colour is #647D75** (a muted sage-teal), supplied directly by Louise 2026-09-08 — see
+  `assets/css/style.css`'s `:root` comment for the full palette history and the derived tonal ramp
+  (buttons/hovers/pale tints all recoloured to match, not just the background). `logo-deep.png` was
+  recoloured pixel-for-pixel to match (alpha/anti-aliasing untouched); `logo-white.png` needed no
+  change, it's plain white. The favicon was replaced the same day with Louise's own artwork
+  (`assets/img/favicon.png`, sourced from a "favicon icon" folder she dropped in the project root —
+  that folder's PSD/JPEG working files are left alone, not part of the site).
 - Phone **+27 72 251 7390** (same source as above, still shown site-wide). The postal address
   **Agora Square, Langebaan, 7357** is confirmed too, but as of 2026-09-05 (per Louise) it's no
   longer displayed anywhere visible — the footer's address line and contact.html's "Find us" item

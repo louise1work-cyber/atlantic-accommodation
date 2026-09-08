@@ -1,29 +1,35 @@
 /* ============================================================
    Atlantic Accommodation — coastal estate
-   Teal, on cream.
+   Sage-teal, on cream.
    Palette adapted from westrocklangebaan.co.za (a Langebaan
    property development, not a competitor); through several
    revisions since — navy (2026-07-17), Desert Adobe charcoal/
-   terracotta (2026-07-18), and now a single teal family
-   (2026-07-24), landed on after a local sample + live iteration.
+   terracotta (2026-07-18), a single bright-teal family
+   (2026-07-24), and now a muted sage-teal, #647D75, supplied
+   directly by Louise (2026-09-08) as the brand colour going
+   forward — replaces every teal shade below, buttons included.
    ============================================================ */
 
 :root {
-  /* Teal palette, 2026-07-24. Background/cream tones unchanged from Desert
-     Adobe throughout. Every combo re-checked for WCAG AA contrast, not just
-     eyeballed — note plain white BODY text (not headings) on --deep/--deep-2
-     sits at 3.81:1, just under the formal 4.5:1 AA target though still
-     easily readable; large headings (3:1 threshold) are unaffected. */
-  --deep:      #3b8f8f;   /* teal — dark sections, CTA band, footer (all unified to one shade) */
-  --deep-2:    #3b8f8f;   /* same as --deep — footer intentionally matches the CTA band now */
+  /* Sage-teal palette, 2026-09-08. #647D75 (Louise's supplied brand colour —
+     HEX/RGB/CMYK all cross-checked, same colour) is the anchor; --terracotta*
+     (kept the old variable names so nothing downstream has to change) are
+     the same hue/saturation at different lightness, not a separate colour,
+     so buttons and backgrounds now read as one consistent identity instead
+     of two different teals. Every combo re-checked for WCAG AA contrast:
+     white BODY text on --deep/--deep-2 sits at 4.44:1 (better than the old
+     palette's 3.81:1, still just under the formal 4.5:1 AA target for small
+     text — large headings (3:1 threshold) are unaffected, same as before). */
+  --deep:      #647D75;   /* sage-teal — dark sections, CTA band, footer (all unified to one shade) */
+  --deep-2:    #647D75;   /* same as --deep — footer intentionally matches the CTA band now */
   --slate:     #a89a7d;   /* decorative-only accent, dusty sand-sage — too light for body text */
   --slate-deep:#726240;   /* text-safe sand-sage accent, 5.11:1 on cream */
   --slate-pale:#f6f4ee;   /* pale sand-sage panel */
   --slate-line:#ece8df;   /* hairline */
-  --terracotta:      #157480;   /* brighter teal — CTA/button fills; white text 5.47:1 */
-  --terracotta-dark: #0F5C66;   /* CTA hover, deeper teal, white text 7.66:1 */
-  --terracotta-pale: #e9f5f4;   /* pale teal tint */
-  --terracotta-glow: #DFF7F2;   /* lightened again for the new brighter shared bg — 4.64:1 vs deep/deep-2 */
+  --terracotta:      #566C65;   /* darker sage-teal — CTA/button fills; white text 5.65:1 */
+  --terracotta-dark: #445550;   /* CTA hover, deeper sage-teal, white text 7.90:1 */
+  --terracotta-pale: #E8EDEB;   /* pale sage-teal tint */
+  --terracotta-glow: #F1F4F3;   /* light accent/icon colour on the dark sage-teal bg — 4.00:1 vs deep/deep-2 */
 
   --ink:       #262220;   /* headings — near-black adobe brown */
   --ink-soft:  #39312d;   /* body copy, 10.95:1 on cream */
