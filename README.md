@@ -113,14 +113,20 @@ higher-resolution originals when available.
 |---|---|
 | `beach-cottage.jpg` | Beach Cottage — patio at dusk (also the homepage hero) |
 | `apartment.jpg` | Apartment — open-plan living |
-| `dolphin-beach.jpg` | Seaview — living area |
+| `dolphin-beach.jpg` | Seaview — living area (also the properties.html/homepage card) |
+| `dolphin-beach-kitchen.jpg` / `-bedroom.jpg` / `-bathroom.jpg` / `-workspace.jpg` | Seaview — from its Airbnb photo tour, 2026-09-08 |
+| `dolphin-beach-pool.jpg` / `-garden.jpg` / `-exterior.jpg` | Seaview — Dolphin Beach Estate's pool, lawn and entrance, same source |
 | `langebaan-lagoon.jpg` | Lagoon panorama (About section) |
 
 `crew-house.jpg`, `crew-house-kitchen.jpg`, `crew-house-lounge.jpg` and `crew-house-bedroom.jpg`
 are now unused — orphaned by the 2026-09-05 removal above, left in place rather than deleted in
-case the property comes back. Beach Cottage and the Apartment each have a full `pd-hero` +
-grid photo gallery; Seaview is still the one property on a single full-width image, pending more
-photos from the owner.
+case the property comes back. All four remaining properties now have a full `pd-hero` + grid
+photo gallery — Seaview's (added 2026-09-08) was sourced from its own live Airbnb listing's photo
+tour, per Louise, since it's the same property being marketed through both channels: `dolphin-beach.jpg`
+(the existing hero) turned out to be the exact same shot as the listing's "Living room" cover photo,
+so that one wasn't re-downloaded; `dolphin-beach-kitchen/bedroom/bathroom/workspace/pool/garden/exterior.jpg`
+are new. The listing's "Additional photos" category was deliberately skipped — it's a Red Bull King
+of the Air spectator photo, not a shot of the property, and not something to assume rights to reuse.
 
 **Still outstanding:**
 1. **Apartment's bathroom count** is still an estimate, marked with `*` on the site. Beach Cottage
