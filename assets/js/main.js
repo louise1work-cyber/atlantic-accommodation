@@ -175,6 +175,108 @@
     activate(widget.getAttribute("data-loc-map") || tabs[0].getAttribute("data-loc-tab"));
   });
 
+  /* Availability calendar — reads /api/availability/:slug (Airbnb + Booking.com +
+     direct, merged server-side) and renders a read-only 2-month grid. Informational
+     only: the site is enquire-only, not instant-book, so this never lets a guest
+     "reserve" a date — it just saves a back-and-forth over dates that are already
+     taken. Blocked ranges only ever come from a channel that's actually configured;
+     see api/availability/[property].js for the fail-soft contract this trusts. */
+  document.querySelectorAll("[data-availability]").forEach(function (root) {
+    var slug = root.getAttribute("data-availability");
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var cursor = new Date(today.getFullYear(), today.getMonth(), 1);
+    var MAX_MONTHS_AHEAD = 12;
+    var DOW = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+    var MONTHS = ["January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"];
+
+    var blocked = null; // [{from: 'YYYY-MM-DD', to: 'YYYY-MM-DD'}], `to` exclusive
+
+    function toISO(d) {
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    }
+
+    function isTaken(iso) {
+      for (var i = 0; i < blocked.length; i++) {
+        if (iso >= blocked[i].from && iso < blocked[i].to) return true;
+      }
+      return false;
+    }
+
+    function renderMonth(monthStart) {
+      var year = monthStart.getFullYear(), month = monthStart.getMonth();
+      var firstDow = new Date(year, month, 1).getDay();
+      var daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      var dow = '<div class="avail-cal__dow">' + DOW.map(function (d) { return "<span>" + d + "</span>"; }).join("") + "</div>";
+
+      var cells = "";
+      for (var i = 0; i < firstDow; i++) cells += '<div class="avail-cal__day avail-cal__day--empty"></div>';
+      for (var day = 1; day <= daysInMonth; day++) {
+        var d = new Date(year, month, day);
+        var iso = toISO(d);
+        var cls = "avail-cal__day";
+        if (d < today) cls += " avail-cal__day--past";
+        else if (isTaken(iso)) cls += " avail-cal__day--taken";
+        cells += '<div class="' + cls + '">' + day + "</div>";
+      }
+
+      return '<div class="avail-cal__month">' +
+        '<div class="avail-cal__month-name">' + MONTHS[month] + " " + year + "</div>" +
+        dow + '<div class="avail-cal__days">' + cells + "</div>" +
+        "</div>";
+    }
+
+    function render() {
+      var next = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+      root.innerHTML =
+        '<div class="avail-cal__head">' +
+        '<button type="button" class="avail-cal__nav" data-avail-prev aria-label="Previous month">&#8249;</button>' +
+        '<div class="avail-cal__label">' + MONTHS[cursor.getMonth()] + " " + cursor.getFullYear() + "</div>" +
+        '<button type="button" class="avail-cal__nav" data-avail-next aria-label="Next month">&#8250;</button>' +
+        "</div>" +
+        '<div class="avail-cal__grids">' + renderMonth(cursor) + renderMonth(next) + "</div>" +
+        '<div class="avail-cal__legend">' +
+        '<span><i class="avail-cal__swatch avail-cal__swatch--free"></i> Available to enquire</span>' +
+        '<span><i class="avail-cal__swatch avail-cal__swatch--taken"></i> Already booked</span>' +
+        "</div>" +
+        '<p class="avail-cal__note">Booked dates are pulled from Airbnb, Booking.com and direct bookings. ' +
+        "We don't take instant bookings, so send us your dates and we'll confirm within 24 hours.</p>";
+
+      var prevBtn = root.querySelector("[data-avail-prev]");
+      var nextBtn = root.querySelector("[data-avail-next]");
+      prevBtn.disabled = cursor.getFullYear() === today.getFullYear() && cursor.getMonth() === today.getMonth();
+      var monthsAhead = (cursor.getFullYear() - today.getFullYear()) * 12 + (cursor.getMonth() - today.getMonth());
+      nextBtn.disabled = monthsAhead >= MAX_MONTHS_AHEAD;
+
+      prevBtn.addEventListener("click", function () {
+        cursor = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1);
+        render();
+      });
+      nextBtn.addEventListener("click", function () {
+        cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+        render();
+      });
+    }
+
+    function showStatus(message) {
+      root.innerHTML = '<p class="avail-cal__status">' + message + "</p>";
+    }
+
+    showStatus("Loading availability…");
+    fetch("/api/availability/" + slug)
+      .then(function (res) { return res.ok ? res.json() : Promise.reject(new Error("bad response")); })
+      .then(function (data) {
+        if (!data || !Array.isArray(data.blocked)) throw new Error("malformed response");
+        blocked = data.blocked;
+        render();
+      })
+      .catch(function () {
+        showStatus("We couldn't load live availability right now — send us your dates and we'll confirm by return.");
+      });
+  });
+
   /* Footer year */
   var yr = document.querySelector("[data-year]");
   if (yr) yr.textContent = new Date().getFullYear();

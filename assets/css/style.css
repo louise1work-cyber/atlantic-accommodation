@@ -282,6 +282,38 @@ p  { margin: 0 0 1.1rem; }
 .loc-map__tab.is-active { background: var(--deep); border-color: var(--deep); color: #fff; }
 .loc-map__frame { display: block; width: 100%; height: 320px; border: 0; }
 
+/* ---------- Availability calendar — reads /api/availability/:slug, informational
+   only (no date-range picker: the site is enquire-only, not instant-book, so
+   "available" here just means "not yet taken", never a guarantee). ---------- */
+.avail-cal { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--bg); }
+.avail-cal__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .9rem 1.1rem; background: var(--panel); border-bottom: 1px solid var(--line); }
+.avail-cal__label { font-family: var(--font-display); font-size: 1.05rem; color: var(--ink); text-align: center; flex: 1; }
+.avail-cal__nav {
+  width: 30px; height: 30px; flex: none; display: grid; place-items: center;
+  border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--bg);
+  color: var(--ink); cursor: pointer; font-size: 1rem; line-height: 1;
+  transition: border-color .2s var(--ease), color .2s var(--ease);
+}
+.avail-cal__nav:hover:not(:disabled) { border-color: var(--deep); color: var(--deep); }
+.avail-cal__nav:disabled { opacity: .35; cursor: default; }
+.avail-cal__grids { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); }
+.avail-cal__month { background: var(--bg); padding: 1rem 1.1rem 1.2rem; }
+.avail-cal__month-name { font-family: var(--font-display); font-size: .98rem; font-weight: 500; color: var(--ink); margin-bottom: .7rem; text-align: center; }
+.avail-cal__dow, .avail-cal__days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.avail-cal__dow { font-size: .6rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: .4rem; text-align: center; }
+.avail-cal__day { aspect-ratio: 1; display: grid; place-items: center; font-size: .76rem; border-radius: 3px; color: var(--ink-soft); }
+.avail-cal__day--taken { background: var(--slate-pale); color: var(--muted); text-decoration: line-through; text-decoration-color: var(--slate); text-decoration-thickness: 1px; }
+.avail-cal__day--past { color: var(--line); }
+.avail-cal__day--empty { visibility: hidden; }
+.avail-cal__legend { display: flex; flex-wrap: wrap; gap: 1.2rem; padding: .9rem 1.1rem; border-top: 1px solid var(--line); background: var(--panel); font-size: .78rem; color: var(--muted); }
+.avail-cal__legend span { display: inline-flex; align-items: center; gap: .45rem; }
+.avail-cal__swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.avail-cal__swatch--free { background: var(--bg); border: 1px solid var(--line); }
+.avail-cal__swatch--taken { background: var(--slate-pale); border: 1px solid var(--slate); }
+.avail-cal__note { font-size: .74rem; color: var(--muted); padding: 0 1.1rem 1rem; }
+.avail-cal__status { padding: 2.6rem 1.1rem; text-align: center; color: var(--muted); font-size: .88rem; }
+@media (max-width: 640px) { .avail-cal__grids { grid-template-columns: 1fr; } }
+
 /* ---------- Grid ---------- */
 .grid { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
 .grid--3 { grid-template-columns: repeat(3, 1fr); }

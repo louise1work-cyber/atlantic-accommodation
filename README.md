@@ -17,7 +17,7 @@ listing on **Airbnb**.
 | `properties/seaview-dolphin-beach.html` | Atlantic Seaview (Dolphin Beach, Cape Town) |
 | `contact.html` | Contact details + direct-booking enquiry form |
 | `assets/css/style.css` | All styling (quiet classic hospitality theme) |
-| `assets/js/main.js` | Mobile menu, scroll reveal, form handling |
+| `assets/js/main.js` | Mobile menu, scroll reveal, form handling, availability calendar |
 | `api/enquiry.js` | Enquiry form handler — email via Resend, logs to Supabase |
 | `api/ical/[property].js` | Per-property `.ics` calendar feed for Airbnb/Booking.com sync (outbound) |
 | `api/availability/[property].js` | Per-property blocked dates, Airbnb + Booking.com + direct merged (inbound) |
@@ -493,6 +493,29 @@ render free dates.
 If it re-exported what it read from Airbnb or Booking.com, each would import its own blocks
 straight back, and the two would bounce dates around the loop indefinitely. Keep the two
 directions separate.
+
+### Showing availability on the property pages (2026-09-10)
+
+`/api/availability/:property` existed for a month before anything on the site actually displayed
+it — the sync itself worked, but a guest browsing had no way to see it. `assets/js/main.js`'s
+`[data-availability]` widget closes that gap: a 2-month calendar grid on each property page
+(`<div class="avail-cal" data-availability="apartment">`, empty — the script owns the whole
+render), fetching that property's merged blocked dates on load.
+
+**Deliberately read-only, no date-range picker.** The site is enquire-only, not instant-book, so
+there's nothing to "select" — a guest sees which dates are already taken and enquires about the
+rest, same flow as before, just with fewer round-trips over dates that turn out to be gone. Past
+days are dimmed, taken days are struck through, everything else reads as open. Prev/Next buttons
+step one month at a time, capped at 12 months out and never before the current month.
+
+**Inherits the fail-soft contract above rather than re-deciding it.** A fetch failure or malformed
+response shows "We couldn't load live availability right now — send us your dates and we'll
+confirm by return" instead of an empty or broken grid — never guesses, never shows availability it
+isn't sure of. This is the same reasoning as `api/availability/[property].js`'s own contract, just
+enforced again at the one layer that actually renders to a guest.
+
+Wired into Beach Cottage, Apartment and Seaview (the three properties still on the site). Crew
+House has no page to add it to — see the removal note above.
 
 ### POPIA (consent)
 
