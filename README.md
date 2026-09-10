@@ -228,13 +228,24 @@ on a real auto-reply. Nothing here needs redoing.
 
 | Env var | Required | Default |
 |---|---|---|
-> **`vercel env pull` cannot read these values back.** On CLI 56.x every encrypted variable in
-> this project pulls as an empty string — including ones that demonstrably work, like
-> `SUPABASE_URL`. Do **not** read a `FOO=""` in a pulled file as "the variable is empty"; it
-> means "the CLI won't tell you". This cost an hour on 2026-09-10, when an empty pull was
-> misread as a broken `ENQUIRY_FROM` that was in fact correctly configured all along. To check a
-> value, look at its effect (the `From:` on a real email, a working API call) or the Vercel
-> dashboard — never a pull.
+> **A variable marked _Sensitive_ pulls as an empty string.** `vercel env pull` returns
+> `FOO=""` for every sensitive variable — write-only is the whole point of the flag — and most
+> of the secrets here are sensitive. A non-sensitive variable pulls its real value, so an empty
+> line means "this one is sensitive", **never** "this variable is empty".
+>
+> This cost an hour on 2026-09-10: an empty pull was misread as a broken `ENQUIRY_FROM` that was
+> in fact correctly configured all along. The tell was available and missed — `SUPABASE_URL`
+> pulled empty too, while Supabase logging demonstrably worked. To check a value, look at its
+> effect (the `From:` on a real email, a working API call) or the Vercel dashboard.
+>
+> Note `vercel env add` **defaults to sensitive when it detects an agent**, so anything Claude
+> adds becomes unreadable in the dashboard unless you pass `--no-sensitive`:
+>
+> ```bash
+> vercel env add MY_VAR production --no-sensitive --yes --value 'the value'
+> ```
+>
+> Use `--value` rather than piping to stdin; a piped value is silently dropped in agent mode.
 
 | `RESEND_API_KEY` | **yes** | — |
 | `ENQUIRY_TO` | no | `info@atlanticaccommodation.co.za` |
