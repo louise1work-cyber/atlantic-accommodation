@@ -58,6 +58,9 @@ const clean = (v, max) => String(v == null ? "" : v).trim().slice(0, max);
 
 const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
+// A `type="date"` field always submits ISO; anything else isn't a date we can compare.
+const isDate = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v);
+
 // Verify a Cloudflare Turnstile token. Returns true if the token is valid,
 // throws on a hard failure so the caller can decide how to respond.
 async function verifyTurnstile(secret, token, ip) {
@@ -224,6 +227,14 @@ module.exports = async (req, res) => {
   }
   if (!isEmail(d.email)) {
     return res.status(400).json({ error: "That email address doesn't look right." });
+  }
+  // Check-out must come after check-in. The calendar picker can't produce an
+  // inverted range, but the date fields can still be typed into directly — and
+  // an enquiry logged as "9 Nov to 12 Sep" is a real thing that happened.
+  // Only enforced when both are real ISO dates: anything else is left alone
+  // rather than risk bouncing a genuine enquiry over a date-format quirk.
+  if (isDate(d.checkin) && isDate(d.checkout) && d.checkout <= d.checkin) {
+    return res.status(400).json({ error: "Your check-out date must be after your check-in date." });
   }
 
   // The owner notification is the one that must not be lost.

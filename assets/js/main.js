@@ -134,6 +134,36 @@
     if (field && value && /^\d{4}-\d{2}-\d{2}$/.test(value)) field.value = value;
   });
 
+  /* Check-out has to be after check-in. The calendar picker can't produce an
+     inverted range, but these two fields can still be typed into directly — and
+     an enquiry logged as "9 Nov to 12 Sep" is a real thing that reached the
+     database. Sets `min` so the native picker greys out the impossible days, and
+     setCustomValidity so the submit handler's existing checkValidity/
+     reportValidity call surfaces it. api/enquiry.js enforces the same rule
+     server-side, which is the one that actually holds. */
+  var checkinField = document.querySelector('input[name="checkin"]');
+  var checkoutField = document.querySelector('input[name="checkout"]');
+  if (checkinField && checkoutField) {
+    var isoOf = function (d) {
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    };
+    var dayAfter = function (iso) {
+      var p = iso.split("-");
+      return isoOf(new Date(+p[0], +p[1] - 1, +p[2] + 1)); // rolls over months/years itself
+    };
+    var validateDates = function () {
+      var from = checkinField.value, to = checkoutField.value;
+      checkoutField.min = from ? dayAfter(from) : "";
+      checkoutField.setCustomValidity(from && to && to <= from ? "Check-out must be after check-in." : "");
+    };
+    checkinField.min = isoOf(new Date());
+    ["change", "input"].forEach(function (evt) {
+      checkinField.addEventListener(evt, validateDates);
+      checkoutField.addEventListener(evt, validateDates);
+    });
+    validateDates();
+  }
+
   /* Optional "from R X" pricing — reads /api/rates (backed by a Supabase rates
      table). Until a rate is set for a property this stays untouched, so the
      page keeps showing "Enquire — for rates & availability" by default. */
