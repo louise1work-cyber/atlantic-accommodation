@@ -477,6 +477,10 @@ p  { margin: 0 0 1.1rem; }
   outline: none; border-color: var(--ink); background: var(--white); box-shadow: none;
 }
 .field textarea { resize: vertical; min-height: 130px; }
+/* An already-decided field: reads as settled fact, not another thing to answer. */
+.field-fixed { margin: 0; font-size: 1rem; color: var(--ink); }
+.field-fixed a { font-size: .78rem; color: var(--muted); text-decoration: underline; margin-left: .5rem; }
+.field-fixed a:hover { color: var(--ink); }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.3rem; }
 .form-note { font-size: .74rem; color: var(--muted); margin-top: .6rem; }
 .field-check {

@@ -121,10 +121,25 @@
   var prop = params.get("property");
   if (prop) {
     var select = document.querySelector('select[name="property"]');
+    var match = null;
     if (select) {
       Array.prototype.forEach.call(select.options, function (o) {
-        if (o.value.toLowerCase() === prop.toLowerCase()) o.selected = true;
+        if (o.value && o.value.toLowerCase() === prop.toLowerCase()) { o.selected = true; match = o; }
       });
+    }
+    /* Arriving from a property's calendar, the choice is already made — showing a
+       dropdown asking again just invites second-guessing. Swap it for a plain
+       confirmation (value still submitted, via a hidden input) plus a way out.
+       Only when we actually recognise the property: the 22-odd nav/footer links
+       that reach this form with no ?property= still need the real dropdown, or
+       most enquiries would arrive without saying which home they're about. */
+    if (match) {
+      var field = select.closest(".field");
+      field.innerHTML =
+        "<label>Property</label>" +
+        '<p class="field-fixed">' + match.textContent +
+        ' <a href="properties.html">change</a></p>' +
+        '<input type="hidden" name="property" value="' + match.value.replace(/"/g, "&quot;") + '" />';
     }
   }
   ["checkin", "checkout"].forEach(function (key) {

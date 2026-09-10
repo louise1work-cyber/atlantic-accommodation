@@ -536,6 +536,14 @@ than died: `<div class="price" data-rate="…">` now sits just under the Availab
 read by main.js, still switched on by adding a row to Supabase `rates`. Its fallback text lost
 "& availability" — the calendar directly beneath it answers that half now.
 
+**The enquiry form's property field is adaptive, not deleted (2026-09-10).** Arriving from a
+property's calendar, the choice is already made, so main.js swaps the `<select>` for a plain
+"Property — Atlantic Beach Cottage *(change)*" line plus a hidden input; asking again just invites
+second-guessing. It only does this when the `?property=` value actually matches an option —
+**the dropdown itself has to stay**, because 22 of the 28 links into `contact.html` (header nav,
+footer, CTA bands, external) carry no property at all, and deleting it outright would mean most
+enquiries arrived without saying which home they were about.
+
 **Two rules stop an impossible range being selected**, both derived from the merged `blocked`
 list rather than re-implemented:
 
