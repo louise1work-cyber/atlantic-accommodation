@@ -73,11 +73,14 @@ a:hover { color: var(--slate-deep); }
 
 /* Cormorant has a small x-height and a light 400 — size up and use 500
    so headings carry the same presence as West Rock's display face. */
+/* Headings are brand sage-teal, not near-black — Louise, 2026-09-10 ("change all
+   the heading to green"), extending the hero-only treatment to every heading.
+   Overrides for dark backgrounds (.bg-sea, .cta-band, .site-footer) still win. */
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 500;
   line-height: 1.14;
-  color: var(--ink);
+  color: var(--deep);
   margin: 0 0 .6em;
   letter-spacing: 0;
 }
@@ -360,7 +363,7 @@ p  { margin: 0 0 1.1rem; }
 }
 .card__body { padding: 26px 26px 28px; display: flex; flex-direction: column; flex: 1; }
 .card__body h3 { margin-bottom: .35rem; font-size: 1.6rem; }
-.card__body h3 a { color: var(--ink); }
+.card__body h3 a { color: var(--deep); }
 .card__body h3 a:hover { color: var(--slate-deep); }
 .card__loc { display: flex; align-items: center; gap: .45rem; font-size: .68rem; color: var(--muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: .12em; }
 .card__loc svg { width: 13px; height: 13px; color: var(--slate-deep); }
@@ -391,14 +394,17 @@ p  { margin: 0 0 1.1rem; }
 .feature { background: var(--panel); border: 0; border-radius: 0; padding: 40px 32px; box-shadow: none; }
 .feature__icon { width: 34px; height: 34px; border-radius: 0; background: transparent !important; color: var(--slate-deep) !important; display: grid; place-items: center; margin-bottom: 1.4rem; }
 .feature__icon svg { width: 24px; height: 24px; stroke-width: 1.2; }
-.feature h3 { font-size: 1.3rem; }
+/* 1.3rem (20.8px) at weight 500 is "normal text" to WCAG, which wants 4.5:1 —
+   --deep only reaches 4.33:1 on cream. The deeper brand green clears it at
+   5.49:1, and at this size the two are indistinguishable. Same for .step h3. */
+.feature h3 { font-size: 1.3rem; color: var(--terracotta); }
 .feature p { font-size: .92rem; color: var(--muted); margin: 0; }
 
 /* ---------- Steps ---------- */
 .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 48px; }
 .step { position: relative; padding-top: 1.4rem; border-top: 1px solid rgba(255,255,255,.16); }
 .step__n { font-family: var(--font-body); font-size: .68rem; font-weight: 500; color: var(--terracotta-glow); letter-spacing: .24em; margin-bottom: 1rem; }
-.step h3 { font-size: 1.3rem; }
+.step h3 { font-size: 1.3rem; color: var(--terracotta); }
 .step p { font-size: .92rem; color: #f8f1e9; margin: 0; }
 
 /* ---------- Split / about ---------- */
@@ -544,7 +550,7 @@ p  { margin: 0 0 1.1rem; }
 
 /* ---------- Page header (interior) — light ---------- */
 .page-hero { background: var(--panel); color: var(--ink); padding: clamp(56px, 7vw, 88px) 0; position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
-.page-hero h1 { color: var(--ink); }
+.page-hero h1 { color: var(--deep); }
 .page-hero p { color: var(--muted); max-width: 58ch; }
 .page-hero__wave { display: none; }
 .breadcrumb { display: flex; gap: .6rem; align-items: center; font-size: .66rem; color: var(--muted); margin-bottom: 1.6rem; text-transform: uppercase; letter-spacing: .14em; }
