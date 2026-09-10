@@ -516,6 +516,13 @@ so the URLs stay in the HTML next to the other links to them rather than in a se
 Still nothing is *reserved* here — the site is enquire-only and the owner confirms every booking
 by hand, which is exactly why double-bookings can't happen through this.
 
+**`properties.html` cards deliberately have no booking buttons (2026-09-10).** They used to carry
+Book Direct / Airbnb / Booking.com chips, which leaked straight past the calendar — "Book Direct"
+landed on a *blank* enquiry form, which is the exact re-typing problem the picker above removes.
+Each card now offers only "View details", so every booking path runs property page → pick dates →
+dated handoff. Nothing was lost: all three channels live on the property page one click away.
+Don't re-add them to the listing page without also making them date-aware.
+
 **Two rules stop an impossible range being selected**, both derived from the merged `blocked`
 list rather than re-implemented:
 
