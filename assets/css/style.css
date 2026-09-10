@@ -428,7 +428,10 @@ p  { margin: 0 0 1.1rem; }
 .pd-gallery-side--3 img:last-child { grid-column: 1 / -1; }
 .pd-more-photos { margin-top: 1px; }
 .pd-more-photos .media { border-radius: 0; }
-.pd-layout { display: grid; grid-template-columns: 1fr 340px; gap: 72px; align-items: start; }
+/* Single column since the booking sidebar was removed (2026-09-10) — capped
+   rather than left to fill the 1140px container, which would stretch body copy
+   to an uncomfortable measure. The availability calendar is the booking block now. */
+.pd-layout { display: grid; grid-template-columns: minmax(0, 860px); justify-content: center; }
 .pd-specs { display: flex; flex-wrap: wrap; gap: 2.4rem; padding: 1.6rem 0; background: transparent; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); border-radius: 0; margin: 2rem 0 2.4rem; }
 .pd-specs div { display: flex; align-items: center; gap: .7rem; font-weight: 500; color: var(--ink); font-family: var(--font-display); font-size: 1.4rem; }
 .pd-specs svg { width: 18px; height: 18px; color: var(--slate-deep); stroke-width: 1.3; }
@@ -437,14 +440,10 @@ p  { margin: 0 0 1.1rem; }
 .amenities li { display: flex; align-items: center; gap: .7rem; padding: .55rem 0; break-inside: avoid; color: var(--ink-soft); font-size: .93rem; }
 .amenities svg { width: 14px; height: 14px; color: var(--slate-deep); flex: none; stroke-width: 1.5; }
 
-.booking-card { position: sticky; top: 100px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: none; padding: 32px 28px; }
-.booking-card h3 { font-size: 1.65rem; margin-bottom: .5rem; }
-.booking-card .price { display: flex; align-items: baseline; gap: .4rem; margin-bottom: 1.6rem; padding-bottom: 1.4rem; border-bottom: 1px solid var(--line); }
-.booking-card .price b { font-family: var(--font-display); font-size: 1.7rem; font-weight: 500; color: var(--ink); }
-.booking-card .price span { color: var(--muted); font-size: .82rem; }
-.booking-card .divider { height: 1px; background: var(--line); margin: 1.5rem 0; }
-.booking-card .note { font-size: .64rem; color: var(--muted); margin-top: 1.4rem; text-align: center; text-transform: uppercase; letter-spacing: .14em; }
-.channel-stack { display: grid; gap: .6rem; }
+/* Dormant until a row exists in Supabase `rates`; main.js swaps in "From R…". */
+.price { display: flex; align-items: baseline; gap: .5rem; margin: .9rem 0 0; }
+.price b { font-family: var(--font-display); font-size: 1.5rem; font-weight: 500; color: var(--ink); }
+.price span { color: var(--muted); font-size: .82rem; }
 .channel-btn {
   display: flex; align-items: center; gap: .9rem; width: 100%;
   padding: .95rem 1rem; border-radius: var(--radius);
@@ -557,8 +556,7 @@ p  { margin: 0 0 1.1rem; }
   .grid--3, .grid--4 { grid-template-columns: repeat(2, 1fr); }
   .features, .steps { grid-template-columns: 1fr; }
   .steps { gap: 32px; }
-  .pd-layout { grid-template-columns: 1fr; gap: 48px; }
-  .booking-card { position: static; }
+  .pd-layout { grid-template-columns: 1fr; }
   /* Stacked: drop the 16/9 frame, or it crushes the main photo to a sliver.
      Each image gets its own aspect instead. */
   .pd-hero { grid-template-columns: 1fr; aspect-ratio: auto; max-height: none; }

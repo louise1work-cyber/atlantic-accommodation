@@ -523,6 +523,19 @@ Each card now offers only "View details", so every booking path runs property pa
 dated handoff. Nothing was lost: all three channels live on the property page one click away.
 Don't re-add them to the listing page without also making them date-aware.
 
+**The "Book this home" sidebar is gone too, for the same reason (2026-09-10).** Each property page
+used to carry a sticky `.booking-card` aside holding a second, *date-less* copy of the same three
+channel buttons — so a page had two Book Direct links, one of which threw the guest's dates away.
+The calendar under "Availability" is now the only booking block on the page. `.pd-layout` is a
+single centred column capped at 860px (not full container width, which would stretch body copy),
+and the `.booking-card` / `.channel-stack` rules were deleted as dead — but **`.channel-btn` and
+its variants are still very much in use**, by the calendar's own footer.
+
+The one thing worth preserving from that sidebar was the dormant rates hook, so it moved rather
+than died: `<div class="price" data-rate="…">` now sits just under the Availability heading, still
+read by main.js, still switched on by adding a row to Supabase `rates`. Its fallback text lost
+"& availability" — the calendar directly beneath it answers that half now.
+
 **Two rules stop an impossible range being selected**, both derived from the merged `blocked`
 list rather than re-implemented:
 
