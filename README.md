@@ -138,10 +138,19 @@ of the Air spectator photo, not a shot of the property, and not something to ass
 
 ## Property location maps
 
-Each of the two remaining Langebaan property pages (Beach Cottage, Apartment) and the contact
-page show the same tabbed map — click a tab and the embedded map re-centres on that property.
-Seaview (Dolphin Beach, Cape Town) gets its own single, un-tabbed map on its own page, since it's
-a different city entirely.
+**Property pages show one pin — their own.** The map widget's tabs are optional: a property page
+renders it with no `[data-loc-tab]` buttons at all, so it can only ever centre on that home.
+It used to carry a Beach Cottage / Apartment switcher, which meant the page a guest was about to
+book on also advertised the *other* property's location — confusing at best, and a way to lose
+someone mid-booking. Removed 2026-09-10 at Louise's request ("make sure that only atlantic beach
+cottage's location shows on the map and the same for atlantic apartment").
+
+**`contact.html` keeps the tabs.** That page isn't about one property, so showing both Langebaan
+homes on a switcher is the point there. It's the only remaining caller of the tab code.
+
+Seaview (Dolphin Beach, Cape Town) has always had its own single, un-tabbed map, hard-coded in
+its own page rather than driven by `LOC_MAP_PINS` — it's a different city, so it never belonged
+in the Langebaan switcher.
 
 **No Google Cloud project, API key, or billing setup needed** — this uses Google's plain
 `output=embed` share-link format (the same URL you get from a place's own "Share → Embed a map"),
@@ -171,6 +180,26 @@ sends two emails through [Resend](https://resend.com)'s REST API:
 
 It calls Resend over `fetch`, so there are **no npm dependencies and no build step** — the site
 stays a plain static deploy.
+
+### Dates in the emails
+
+Both emails format the stay with `stayDates()` rather than printing the raw ISO values:
+
+| Stay | Renders as |
+|---|---|
+| within one month | `6 – 9 October 2026` |
+| across months | `28 October – 2 November 2026` |
+| across New Year | `28 December 2026 – 2 January 2027` |
+
+Long-form months, so a guest can't read `06-10` as 10 June. The range sits in a
+`white-space:nowrap` span and, in the guest email, inside its own bordered panel rather than
+inline in a sentence — prose reflows at whatever width the reader's client picks, which is how a
+date ended up split across two lines in Louise's 2026-09-10 test. Nights are counted in UTC so
+the number can't drift by one across a DST boundary, and counted as *nights*, not days:
+check-out is the morning you leave.
+
+`parts()` splits the ISO string by regex instead of `new Date(iso)` — the same timezone-shift
+trap the availability calendar avoids in `assets/js/main.js`.
 
 ### Activating it
 

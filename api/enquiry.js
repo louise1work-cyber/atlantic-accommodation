@@ -61,6 +61,49 @@ const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 // A `type="date"` field always submits ISO; anything else isn't a date we can compare.
 const isDate = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v);
 
+const MONTHS = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+
+// Split an ISO date without going through Date(), which would shift the day
+// across timezones — the same reason the calendar widget parses dates by hand.
+const parts = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+  return m ? { y: m[1], mo: Number(m[2]), d: Number(m[3]) } : null;
+};
+
+// "6 October 2026" — long form, so a guest reading on a phone can't misread it
+// as US month/day, and so it never looks like a machine value.
+const longDate = (iso) => {
+  const p = parts(iso);
+  return p ? `${p.d} ${MONTHS[p.mo - 1]} ${p.y}` : String(iso || "");
+};
+
+/* Collapse a stay into the shortest phrase that's still unambiguous:
+     same month  →  6 – 9 October 2026
+     same year   →  28 October – 2 November 2026
+     across NYE  →  28 December 2026 – 2 January 2027
+   The en-dash is wrapped in a nowrap span at the call site so a narrow mail
+   client can never break a date in half. */
+function stayDates(from, to) {
+  if (!isDate(from) && !isDate(to)) return "";
+  if (!isDate(from)) return `until ${longDate(to)}`;
+  if (!isDate(to)) return `from ${longDate(from)}`;
+  const a = parts(from), b = parts(to);
+  if (a.y === b.y && a.mo === b.mo) return `${a.d} – ${b.d} ${MONTHS[b.mo - 1]} ${b.y}`;
+  if (a.y === b.y) return `${a.d} ${MONTHS[a.mo - 1]} – ${b.d} ${MONTHS[b.mo - 1]} ${b.y}`;
+  return `${longDate(from)} – ${longDate(to)}`;
+}
+
+// Nights, not days: check-out is the morning you leave. UTC throughout so the
+// count can't drift by one across a DST boundary.
+function nights(from, to) {
+  const a = parts(from), b = parts(to);
+  if (!a || !b) return 0;
+  const utc = (p) => Date.UTC(Number(p.y), p.mo - 1, p.d);
+  const diff = utc(b) - utc(a);
+  return diff > 0 ? diff / 86400000 : 0;
+}
+
 // Verify a Cloudflare Turnstile token. Returns true if the token is valid,
 // throws on a hard failure so the caller can decide how to respond.
 async function verifyTurnstile(secret, token, ip) {
@@ -95,15 +138,16 @@ function ownerEmail(d) {
          </tr>`
       : "";
 
-  const dates =
-    d.checkin || d.checkout
-      ? `${esc(d.checkin || "?")} &rarr; ${esc(d.checkout || "?")}`
-      : "";
+  const range = stayDates(d.checkin, d.checkout);
+  const n = nights(d.checkin, d.checkout);
+  const dates = range
+    ? `<span style="white-space:nowrap">${esc(range)}</span>${n ? `<span style="color:#6f6960"> &middot; ${n} night${n === 1 ? "" : "s"}</span>` : ""}`
+    : "";
 
   return `<div style="background:#f7f5f1;padding:32px">
   <div style="max-width:620px;margin:0 auto;background:#fff;border:1px solid #ded9cf">
     <div style="padding:24px 28px;border-bottom:1px solid #ded9cf">
-      <div style="color:#9a6a4a;font:500 11px/1 -apple-system,Segoe UI,sans-serif;text-transform:uppercase;letter-spacing:.2em">New booking enquiry</div>
+      <div style="color:#566C65;font:500 11px/1 -apple-system,Segoe UI,sans-serif;text-transform:uppercase;letter-spacing:.2em">New booking enquiry</div>
       <div style="margin-top:8px;color:#2e2b26;font:400 24px/1.2 Georgia,serif">${esc(d.firstName)} ${esc(d.surname)}</div>
     </div>
     <div style="padding:20px 28px">
@@ -111,8 +155,8 @@ function ownerEmail(d) {
         ${row("Property", esc(d.property || "No preference"))}
         ${row("Dates", dates)}
         ${row("Guests", esc(d.guests))}
-        ${row("Email", `<a href="mailto:${esc(d.email)}" style="color:#9a6a4a">${esc(d.email)}</a>`)}
-        ${row("Phone", `<a href="tel:${esc(d.phone)}" style="color:#9a6a4a">${esc(d.phone)}</a>`)}
+        ${row("Email", `<a href="mailto:${esc(d.email)}" style="color:#566C65">${esc(d.email)}</a>`)}
+        ${row("Phone", `<a href="tel:${esc(d.phone)}" style="color:#566C65">${esc(d.phone)}</a>`)}
       </table>
       ${
         d.message
@@ -132,27 +176,47 @@ function ownerEmail(d) {
 
 function guestEmail(d) {
   const first = esc(d.firstName || "there");
-  return `<div style="background:#f7f5f1;padding:32px">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #ded9cf">
-    <div style="padding:28px 30px;border-bottom:1px solid #ded9cf">
-      <div style="color:#2e2b26;font:400 26px/1.2 Georgia,serif">Atlantic Accommodation</div>
+  const range = stayDates(d.checkin, d.checkout);
+  const n = nights(d.checkin, d.checkout);
+
+  /* The stay sits in its own panel rather than inline in a sentence: prose
+     reflows at whatever width the reader's client picks, which is how the
+     dates ended up split mid-value before. A table cell holds its own
+     padding in Outlook too, where a styled <div> doesn't. */
+  const summary =
+    d.property || range
+      ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;margin:0 0 20px">
+           <tr>
+             <td style="padding:18px 20px;background:#F1F4F3;border:1px solid #dfe6e3">
+               <div style="color:#566C65;font:500 11px/1 -apple-system,Segoe UI,sans-serif;text-transform:uppercase;letter-spacing:.16em">Your enquiry</div>
+               ${d.property ? `<div style="margin-top:10px;color:#262220;font:400 19px/1.35 Georgia,serif">${esc(d.property)}</div>` : ""}
+               ${
+                 range
+                   ? `<div style="margin-top:6px;color:#39312d;font:400 15px/1.6 -apple-system,Segoe UI,sans-serif">
+                        <span style="white-space:nowrap">${esc(range)}</span>${n ? ` &middot; ${n} night${n === 1 ? "" : "s"}` : ""}
+                      </div>`
+                   : ""
+               }
+             </td>
+           </tr>
+         </table>`
+      : "";
+
+  return `<div style="background:#f7f5f1;padding:32px 16px">
+  <div style="max-width:620px;margin:0 auto;background:#fff;border:1px solid #ded9cf">
+    <div style="padding:28px 32px;border-bottom:1px solid #ded9cf">
+      <div style="color:#262220;font:400 26px/1.2 Georgia,serif">Atlantic Accommodation</div>
       <div style="color:#6f6960;font:500 10px/1 -apple-system,Segoe UI,sans-serif;text-transform:uppercase;letter-spacing:.24em;margin-top:6px">Langebaan &middot; Dolphin Beach</div>
     </div>
-    <div style="padding:28px 30px;color:#2e2b26;font:400 15px/1.7 -apple-system,Segoe UI,sans-serif">
+    <div style="padding:28px 32px;color:#262220;font:400 15px/1.7 -apple-system,Segoe UI,sans-serif">
       <p style="margin:0 0 14px">Hi ${first},</p>
-      <p style="margin:0 0 14px">Thank you for your enquiry – we've received it and will come back to you personally, usually within a day.</p>
-      ${
-        d.property
-          ? `<p style="margin:0 0 14px">You asked about <strong>${esc(d.property)}</strong>${
-              d.checkin ? ` for ${esc(d.checkin)}${d.checkout ? ` to ${esc(d.checkout)}` : ""}` : ""
-            }.</p>`
-          : ""
-      }
-      <p style="margin:0 0 14px">If it's urgent, call us on <a href="tel:+27722517390" style="color:#9a6a4a">${PHONE}</a>.</p>
+      <p style="margin:0 0 20px">Thank you for your enquiry – we've received it and will come back to you personally, usually within a day.</p>
+      ${summary}
+      <p style="margin:0 0 14px">If it's urgent, call us on <a href="tel:+27722517390" style="color:#566C65;white-space:nowrap">${PHONE}</a>.</p>
       <p style="margin:22px 0 0;color:#6f6960">Hayley<br/>Atlantic Accommodation</p>
     </div>
-    <div style="padding:16px 30px;background:#f7f5f1;border-top:1px solid #ded9cf;color:#6f6960;font:400 12px/1.5 -apple-system,Segoe UI,sans-serif">
-      ${SITE}
+    <div style="padding:16px 32px;background:#f7f5f1;border-top:1px solid #ded9cf;color:#6f6960;font:400 12px/1.5 -apple-system,Segoe UI,sans-serif">
+      <a href="https://${SITE}" style="color:#566C65;text-decoration:none">${SITE}</a>
     </div>
   </div>
 </div>`;

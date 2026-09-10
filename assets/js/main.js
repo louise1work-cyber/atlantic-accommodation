@@ -206,8 +206,11 @@
   };
   document.querySelectorAll("[data-loc-map]").forEach(function (widget) {
     var frame = widget.querySelector("[data-loc-frame]");
+    /* Tabs are optional. A property page renders the widget with no tabs at all
+       so it can only ever show its own pin — showing a guest the *other* home's
+       location on the page they're booking is just confusing. */
     var tabs = widget.querySelectorAll("[data-loc-tab]");
-    if (!frame || !tabs.length) return;
+    if (!frame) return;
 
     var activate = function (key) {
       var pin = LOC_MAP_PINS[key];
@@ -225,7 +228,7 @@
       tab.addEventListener("click", function () { activate(tab.getAttribute("data-loc-tab")); });
     });
 
-    activate(widget.getAttribute("data-loc-map") || tabs[0].getAttribute("data-loc-tab"));
+    activate(widget.getAttribute("data-loc-map") || (tabs[0] && tabs[0].getAttribute("data-loc-tab")));
   });
 
   /* Availability calendar — reads /api/availability/:slug (Airbnb + Booking.com +
