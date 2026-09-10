@@ -238,8 +238,8 @@
         "</div>" +
         '<div class="avail-cal__grids">' + renderMonth(cursor) + renderMonth(next) + "</div>" +
         '<div class="avail-cal__legend">' +
-        '<span><i class="avail-cal__swatch avail-cal__swatch--free"></i> Available to enquire</span>' +
-        '<span><i class="avail-cal__swatch avail-cal__swatch--taken"></i> Already booked</span>' +
+        '<span><i class="avail-cal__day">15</i> Available to enquire</span>' +
+        '<span><i class="avail-cal__day avail-cal__day--taken">15</i> Already booked</span>' +
         "</div>" +
         '<p class="avail-cal__note">Booked dates are pulled from Airbnb, Booking.com and direct bookings. ' +
         "We don't take instant bookings, so send us your dates and we'll confirm within 24 hours.</p>";
