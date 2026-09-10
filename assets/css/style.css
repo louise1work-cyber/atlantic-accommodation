@@ -322,7 +322,9 @@ p  { margin: 0 0 1.1rem; }
 .avail-cal__summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.1rem 0; }
 .avail-cal__summary b { display: block; font-family: var(--font-display); font-size: 1.15rem; font-weight: 500; color: var(--ink); }
 .avail-cal__summary span { font-size: .64rem; text-transform: uppercase; letter-spacing: .16em; color: var(--muted); }
-.avail-cal__clear { flex: none; background: none; border: 0; padding: 0; font: 400 .78rem var(--font-body); color: var(--muted); text-decoration: underline; cursor: pointer; }
+/* Padding + matching negative margin: the tap target grows to ~42px for thumbs
+   while the text stays exactly where it sits in the row. */
+.avail-cal__clear { flex: none; background: none; border: 0; padding: .85rem .6rem; margin: -.85rem -.6rem; font: 400 .78rem var(--font-body); color: var(--muted); text-decoration: underline; cursor: pointer; }
 .avail-cal__clear:hover { color: var(--ink); }
 .avail-cal__channels { display: grid; gap: .6rem; padding: 1rem 1.1rem 0; }
 .avail-cal__note { font-size: .74rem; color: var(--muted); padding: 1rem 1.1rem 1rem; }
