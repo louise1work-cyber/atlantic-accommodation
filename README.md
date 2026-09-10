@@ -203,6 +203,12 @@ trap the availability calendar avoids in `assets/js/main.js`.
 
 ### Activating it
 
+**This is already done and live — the steps below are kept for reference / disaster recovery.**
+As of 2026-09-10, `atlanticaccommodation.co.za` is **Verified** in Resend (region eu-west-1,
+added ~July 2026) and `ENQUIRY_FROM` is set to
+`Atlantic Accommodation <info@atlanticaccommodation.co.za>`. Confirmed by inspecting the sender
+on a real auto-reply. Nothing here needs redoing.
+
 1. Create an account at https://resend.com.
 2. **Verify the domain** `atlanticaccommodation.co.za` (Resend → Domains → Add). Resend gives
    you DKIM/SPF records to add in xneelo's konsoleH. These are **TXT records only — they do not
@@ -222,9 +228,17 @@ trap the availability calendar avoids in `assets/js/main.js`.
 
 | Env var | Required | Default |
 |---|---|---|
+> **`vercel env pull` cannot read these values back.** On CLI 56.x every encrypted variable in
+> this project pulls as an empty string — including ones that demonstrably work, like
+> `SUPABASE_URL`. Do **not** read a `FOO=""` in a pulled file as "the variable is empty"; it
+> means "the CLI won't tell you". This cost an hour on 2026-09-10, when an empty pull was
+> misread as a broken `ENQUIRY_FROM` that was in fact correctly configured all along. To check a
+> value, look at its effect (the `From:` on a real email, a working API call) or the Vercel
+> dashboard — never a pull.
+
 | `RESEND_API_KEY` | **yes** | — |
 | `ENQUIRY_TO` | no | `info@atlanticaccommodation.co.za` |
-| `ENQUIRY_FROM` | no | `Atlantic Accommodation <onboarding@resend.dev>` |
+| `ENQUIRY_FROM` | no | `Atlantic Accommodation <onboarding@resend.dev>` — but **set in production** to `Atlantic Accommodation <info@atlanticaccommodation.co.za>`, so the default is never used |
 
 ### Why it's built this way
 
