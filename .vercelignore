@@ -1,0 +1,5 @@
+# Kept in git, kept out of the deploy.
+#
+# Editable design originals (PSDs and full-size artwork) are worth versioning but must never
+# be served: they're large, and nothing on the site links to them. See design-source/README.md.
+design-source/
