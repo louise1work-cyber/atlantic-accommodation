@@ -310,7 +310,12 @@ p  { margin: 0 0 1.1rem; }
 .avail-cal__legend .avail-cal__day { width: 22px; height: 22px; aspect-ratio: auto; flex: none; border: 1px solid var(--line); }
 .avail-cal__note { font-size: .74rem; color: var(--muted); padding: 0 1.1rem 1rem; }
 .avail-cal__status { padding: 2.6rem 1.1rem; text-align: center; color: var(--muted); font-size: .88rem; }
-@media (max-width: 640px) { .avail-cal__grids { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+  .avail-cal__grids { grid-template-columns: 1fr; }
+  /* 30px reads fine with a mouse but is under Apple/Google's ~44px touch-target
+     guideline — bump it up for thumbs without changing the desktop click target. */
+  .avail-cal__nav { width: 44px; height: 44px; font-size: 1.2rem; }
+}
 
 /* ---------- Grid ---------- */
 .grid { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
