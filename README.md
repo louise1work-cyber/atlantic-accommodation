@@ -502,11 +502,29 @@ it — the sync itself worked, but a guest browsing had no way to see it. `asset
 (`<div class="avail-cal" data-availability="apartment">`, empty — the script owns the whole
 render), fetching that property's merged blocked dates on load.
 
-**Deliberately read-only, no date-range picker.** The site is enquire-only, not instant-book, so
-there's nothing to "select" — a guest sees which dates are already taken and enquires about the
-rest, same flow as before, just with fewer round-trips over dates that turn out to be gone. Past
-days are dimmed, taken days are struck through, everything else reads as open. Prev/Next buttons
-step one month at a time, capped at 12 months out and never before the current month.
+Past days are dimmed, taken days are struck through, everything else reads as open. Prev/Next
+buttons step one month at a time, capped at 12 months out and never before the current month.
+
+**Pick dates, then pick a channel (2026-09-10).** Clicking a day sets check-in, clicking a second
+sets check-out, and the three buttons underneath — Book direct / Airbnb / Booking.com — carry
+those dates straight through in each platform's own query format (`checkin`/`checkout` for us and
+Booking.com, `check_in`/`check_out` for Airbnb). "Book direct" lands on `contact.html`, where
+main.js prefills the property and both date fields, so nobody re-types dates they just clicked.
+Each property page passes its own listing URLs to the widget via `data-airbnb` / `data-booking`,
+so the URLs stay in the HTML next to the other links to them rather than in a second map in JS.
+
+Still nothing is *reserved* here — the site is enquire-only and the owner confirms every booking
+by hand, which is exactly why double-bookings can't happen through this.
+
+**Two rules stop an impossible range being selected**, both derived from the merged `blocked`
+list rather than re-implemented:
+
+- A stay can't span a booking. Once check-in is picked, everything after the *next* booking's
+  start greys out (`--out`), so you can't select across someone else's stay.
+- A stay *can* end on the day the next booking starts — that's a turnover day, not a conflict,
+  and `to` being exclusive already encodes it. Those days stay clickable as a check-out only
+  (`--turn`, titled "Free as a check-out day"). Without this, back-to-back bookings would
+  wrongly block perfectly bookable dates — Beach Cottage's calendar is full of them.
 
 **Inherits the fail-soft contract above rather than re-deciding it.** A fetch failure or malformed
 response shows "We couldn't load live availability right now — send us your dates and we'll

@@ -305,10 +305,27 @@ p  { margin: 0 0 1.1rem; }
 .avail-cal__day--taken { background: none; color: var(--line); font-weight: 400; text-decoration: line-through; text-decoration-color: var(--line); text-decoration-thickness: 1px; }
 .avail-cal__day--past { color: var(--line); font-weight: 400; }
 .avail-cal__day--empty { visibility: hidden; }
+/* `--out` is a day that's free in itself but unreachable from the check-in already
+   picked, because another booking starts first. Same faded treatment as taken. */
+.avail-cal__day--out { color: var(--line); font-weight: 400; text-decoration: line-through; text-decoration-color: var(--line); text-decoration-thickness: 1px; }
+.avail-cal__day--free, .avail-cal__day--turn { cursor: pointer; }
+.avail-cal__day--free:hover, .avail-cal__day--turn:hover { background: var(--terracotta-pale); }
+.avail-cal__day--free:focus-visible, .avail-cal__day--turn:focus-visible { outline: 2px solid var(--deep); outline-offset: 1px; }
+.avail-cal__day--inrange { background: var(--terracotta-pale); color: var(--ink); }
+/* After --taken so a turnover check-out reads as chosen, not struck through. */
+.avail-cal__day--sel { background: var(--deep); color: #fff; font-weight: 600; text-decoration: none; }
 .avail-cal__legend { display: flex; flex-wrap: wrap; gap: 1.2rem; padding: .9rem 1.1rem; border-top: 1px solid var(--line); background: var(--panel); font-size: .78rem; color: var(--muted); }
 .avail-cal__legend span { display: inline-flex; align-items: center; gap: .5rem; }
 .avail-cal__legend .avail-cal__day { width: 22px; height: 22px; aspect-ratio: auto; flex: none; border: 1px solid var(--line); }
-.avail-cal__note { font-size: .74rem; color: var(--muted); padding: 0 1.1rem 1rem; }
+.avail-cal__hint { font-size: .84rem; color: var(--muted); margin: 0; padding: 1rem 1.1rem 0; }
+.avail-cal__hint b { color: var(--ink); font-family: var(--font-display); font-size: 1.05rem; }
+.avail-cal__summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.1rem 0; }
+.avail-cal__summary b { display: block; font-family: var(--font-display); font-size: 1.15rem; font-weight: 500; color: var(--ink); }
+.avail-cal__summary span { font-size: .64rem; text-transform: uppercase; letter-spacing: .16em; color: var(--muted); }
+.avail-cal__clear { flex: none; background: none; border: 0; padding: 0; font: 400 .78rem var(--font-body); color: var(--muted); text-decoration: underline; cursor: pointer; }
+.avail-cal__clear:hover { color: var(--ink); }
+.avail-cal__channels { display: grid; gap: .6rem; padding: 1rem 1.1rem 0; }
+.avail-cal__note { font-size: .74rem; color: var(--muted); padding: 1rem 1.1rem 1rem; }
 .avail-cal__status { padding: 2.6rem 1.1rem; text-align: center; color: var(--muted); font-size: .88rem; }
 @media (max-width: 640px) {
   .avail-cal__grids { grid-template-columns: 1fr; }
