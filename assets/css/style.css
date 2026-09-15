@@ -543,6 +543,13 @@ p  { margin: 0 0 1.1rem; }
 .footer-brand p { font-size: .9rem; color: #ffffff; max-width: 30ch; }
 .footer-bottom { border-top: 1px solid rgba(255,255,255,.25); margin-top: 52px; padding-top: 26px; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: .74rem; color: #ffffff; text-transform: uppercase; letter-spacing: .1em; }
 .footer-bottom a { color: #ffffff; }
+/* Designer credit, 2026-09-15 — a quiet line under .footer-bottom, in the same small
+   print. Kept pure white rather than a dimmer "muted" tint: white is already the most
+   contrast this footer background allows (4.44:1 on --deep-2), so anything softer
+   would read worse. It's quieted by size and spacing instead. Underlined because the
+   link is the same colour as the words around it; hover follows .site-footer a:hover. */
+.footer-credit { margin: .9rem 0 0; font-size: .7rem; color: #ffffff; text-transform: uppercase; letter-spacing: .1em; line-height: 1.6; }
+.footer-credit a { display: inline; padding: 0; font-size: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .25em; }
 .social { display: flex; gap: 1rem; margin-top: 1.4rem; }
 .social a { width: 34px; height: 34px; border-radius: var(--radius-pill); border: 1px solid rgba(255,255,255,.2); display: grid; place-items: center; color: #ffffff; }
 .social a:hover { background: transparent; border-color: var(--terracotta-glow); color: var(--terracotta-glow); } /* same footer-contrast fix as the link hover above */
