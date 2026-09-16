@@ -691,9 +691,13 @@ Who can sign in is a table, not code: **`site_admin_users`** (one row per person
 - **Grant access:** insert a row — `site = 'atlantic-accommodation'`, `email` in lowercase.
 - **Revoke access:** delete the row. Their next click fails even if they're mid-session.
 
-As of 2026-09-16 the only address is `info@atlanticaccommodation.co.za` — Louise's choice: the
-shared business inbox the owners already read, so access belongs to the business, not a person.
-Anyone who can read that inbox can sign in.
+As of 2026-09-16 there are two addresses:
+- `info@atlanticaccommodation.co.za` — the owners. Louise's choice: the shared business inbox they
+  already read, so access belongs to the business, not a person. Anyone who can read that inbox
+  can sign in.
+- `louiseduplessis@me.com` — Louise, kept after her own end-to-end test so she can sign in to see
+  exactly what the owners see and help them. Her conversations are separate from the owners', but
+  **"My requests" lists every request for the site**, so anything she files shows up for them too.
 
 ### Security
 
