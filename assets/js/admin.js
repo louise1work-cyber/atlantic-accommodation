@@ -127,6 +127,9 @@
     $("composer-text").disabled = !state.assistantReady;
     $("photo-input").disabled = !state.assistantReady;
     updateSendButton();
+    // Keep the "For example" hints hidden until we know whether there's a conversation
+    // to resume; otherwise a returning owner sees them flash up before their chat loads.
+    $("chat-empty").hidden = true;
     showView("app");
     selectTab("chat");
 
