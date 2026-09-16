@@ -800,8 +800,9 @@ build step, and still does. The admin uses the official Anthropic SDK instead: i
 on overload, typed errors, and the beta fallback parameters correctly, which is worth one
 dependency. Vercel installs it from `package-lock.json` on deploy; there is still no build step.
 
-**Function count:** all admin endpoints share one function (`api/admin/[action].js`) because
-Vercel's Hobby plan allows 12 per project; the site now uses 7.
+**Function count:** all admin endpoints share one function (`api/admin/[action].js`), so the site
+uses 7 in total. That's for tidiness (one shared session check), not a limit being hit: the
+Vercel team is on **Pro**, not Hobby. An earlier version of this note wrongly cited Hobby's cap.
 
 ## Anti-spam
 

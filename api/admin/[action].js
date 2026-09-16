@@ -1,8 +1,10 @@
 /**
  * /api/admin/:action — everything behind the owner admin page (/admin).
  *
- * One function with a route per action, rather than one file each, because Vercel's
- * Hobby plan allows 12 functions per project and the site already uses six.
+ * One function with a route per action, rather than one file each: the routes share
+ * the same session check and setup, and it keeps the project well clear of Vercel's
+ * per-deployment function limits (the team is on Pro as of 2026-09-16, so this is
+ * tidiness rather than a hard constraint).
  *
  *   POST login         { email }               → emails a sign-in link (same reply either way)
  *   POST verify        { token }               → sets the session cookie
