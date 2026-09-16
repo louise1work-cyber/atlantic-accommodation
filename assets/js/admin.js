@@ -307,11 +307,11 @@
     renderPhotoTray();
     updateSendButton();
 
-    shrink(file)
-      .then(function (jpeg) {
-        photo.thumb = jpeg.thumb;
+    prepare(file)
+      .then(function (prepared) {
+        photo.thumb = prepared.thumb;
         renderPhotoTray();
-        return api("upload", { name: photo.name, type: "image/jpeg", data: jpeg.base64 });
+        return api("upload", { name: photo.name, type: prepared.type, data: prepared.base64 });
       })
       .then(function (data) {
         photo.ref = data.ref;
@@ -321,6 +321,9 @@
         if (onAuthLost(err)) return;
         photo.status = "error";
         photo.error = err.message;
+        // Say why in the chat itself — a chip's hover text is invisible on a phone.
+        addMessage("error", "Couldn't attach “" + photo.name + "”: " + err.message);
+        scrollToEnd();
       })
       .then(function () {
         renderPhotoTray();
@@ -328,37 +331,84 @@
       });
   }
 
-  // Decode, cap the longest edge, re-encode as JPEG. Phone photos drop from several
-  // MB to a few hundred KB, which keeps uploads fast on mobile data and well inside
-  // the server's request size limit. Read via a data: URL because the site's CSP
-  // doesn't allow blob: images.
-  function shrink(file) {
+  var UPLOADABLE = { "image/jpeg": 1, "image/png": 1, "image/webp": 1 };
+  var MAX_ORIGINAL_BYTES = 3 * 1024 * 1024; // base64 grows ~4/3; stays under the 4.5 MB request limit
+
+  // Shrink the photo to a JPEG of at most MAX_EDGE px. If this browser can't decode it
+  // but it's already a type the server accepts and small enough, send the original
+  // untouched rather than refusing it.
+  function prepare(file) {
+    return decode(file)
+      .then(function (source) {
+        try {
+          var full = draw(source, MAX_EDGE, JPEG_QUALITY);
+          var thumb = draw(source, 240, 0.8);
+          return { type: "image/jpeg", base64: full.split(",")[1], thumb: thumb };
+        } finally {
+          if (source.close) source.close(); // free the decoded bitmap straight away
+        }
+      })
+      .catch(function (err) {
+        if (UPLOADABLE[file.type] && file.size <= MAX_ORIGINAL_BYTES) {
+          return readAsDataUrl(file).then(function (url) {
+            return { type: file.type, base64: url.split(",")[1], thumb: "" };
+          });
+        }
+        throw err;
+      });
+  }
+
+  // Decode straight from the file with createImageBitmap where available. The first
+  // version loaded a data: URL of the whole original into an <img> instead, which
+  // desktop browsers cope with but iPhone Safari refused for full-size camera photos
+  // (Louise's first real test, 2026-09-16: every photo "Failed", nothing uploaded).
+  // createImageBitmap reads the file directly, so there's no multi-megabyte string, and
+  // it isn't an image *load*, so the site's CSP (no blob: images) doesn't apply either.
+  function decode(file) {
+    var viaImg = function () { return decodeViaImage(file); };
+    if (typeof window.createImageBitmap !== "function") return viaImg();
+    return window.createImageBitmap(file).catch(viaImg);
+  }
+
+  function decodeViaImage(file) {
+    return readAsDataUrl(file).then(function (url) {
+      return new Promise(function (resolve, reject) {
+        var img = new Image();
+        img.onload = function () { resolve(img); };
+        img.onerror = function () {
+          reject(new Error("this phone couldn't open the photo. Try a screenshot of it, or a JPEG or PNG."));
+        };
+        img.src = url;
+      });
+    });
+  }
+
+  function readAsDataUrl(file) {
     return new Promise(function (resolve, reject) {
       var reader = new FileReader();
-      reader.onerror = function () { reject(new Error("Couldn't read that photo.")); };
-      reader.onload = function () {
-        var img = new Image();
-        img.onerror = function () { reject(new Error("Couldn't open that photo — try a JPEG or PNG.")); };
-        img.onload = function () {
-          var full = draw(img, MAX_EDGE, JPEG_QUALITY);
-          resolve({ base64: full.split(",")[1], thumb: draw(img, 240, 0.8) });
-        };
-        img.src = reader.result;
-      };
+      reader.onload = function () { resolve(reader.result); };
+      reader.onerror = function () { reject(new Error("the photo couldn't be read.")); };
       reader.readAsDataURL(file);
     });
   }
 
-  function draw(img, maxEdge, quality) {
-    var scale = Math.min(1, maxEdge / Math.max(img.naturalWidth, img.naturalHeight));
+  // Works for both an ImageBitmap (width/height) and an <img> (naturalWidth/Height).
+  function draw(source, maxEdge, quality) {
+    var w = source.naturalWidth || source.width;
+    var h = source.naturalHeight || source.height;
+    if (!w || !h) throw new Error("the photo appears to be empty.");
+    var scale = Math.min(1, maxEdge / Math.max(w, h));
     var canvas = document.createElement("canvas");
-    canvas.width = Math.round(img.naturalWidth * scale);
-    canvas.height = Math.round(img.naturalHeight * scale);
+    canvas.width = Math.round(w * scale);
+    canvas.height = Math.round(h * scale);
     var ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("this phone ran out of memory preparing the photo.");
     ctx.fillStyle = "#ffffff"; // transparent PNG areas would otherwise turn black
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/jpeg", quality);
+    ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+    var url = canvas.toDataURL("image/jpeg", quality);
+    canvas.width = canvas.height = 0; // iOS caps total canvas memory; release it now
+    return url;
   }
 
   function renderPhotoTray() {
@@ -374,6 +424,12 @@
         img.src = photo.thumb;
         img.alt = photo.name;
         chip.appendChild(img);
+      } else if (photo.status === "ready") {
+        // Sent as the original file (no preview could be made), so show a camera instead.
+        var icon = document.createElement("span");
+        icon.className = "photo-chip__icon";
+        icon.textContent = "📷";
+        chip.appendChild(icon);
       }
       if (photo.status !== "ready") {
         var label = document.createElement("span");
