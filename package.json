@@ -1,0 +1,8 @@
+{
+  "name": "atlantic-accommodation",
+  "private": true,
+  "description": "Static site + Vercel Functions. The only dependency is the Anthropic SDK, used by the owner admin chat (api/admin).",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.126.0"
+  }
+}

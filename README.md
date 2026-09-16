@@ -32,6 +32,14 @@ listing on **Airbnb**.
 | `lib/payfast.js` | PayFast signing, verification and payment-field builder |
 | `favicon.ico` | Tab icon, at the site root because browsers request that exact path |
 | `design-source/` | Editable artwork originals — versioned, but excluded from the deploy by `.vercelignore` |
+| `admin/index.html` | Owner admin — sign in and ask Claude for website changes (see "Owner admin") |
+| `assets/css/admin.css` / `assets/js/admin.js` | The admin page's styles and behaviour |
+| `api/admin/[action].js` | Every admin endpoint: sign-in, chat, photo upload, request list |
+| `lib/site-admin.js` | Admin data layer: allowlist, sign-in links, sessions, requests, photo storage, spend ledger |
+| `lib/admin-assistant.js` | The Claude assistant: instructions, the `submit_change_request` tool, the turn loop |
+| `lib/site-content.js` | Plain-text snapshot of the live pages, so the assistant can quote what the site says |
+| `lib/admin-email.js` | Admin emails: the sign-in link and the change-request notice |
+| `package.json` | One dependency, `@anthropic-ai/sdk`, for the admin assistant only |
 
 ## Run it locally
 
@@ -630,6 +638,145 @@ because consent lives on the client, not the individual enquiry — it only ever
 true; a later enquiry from the same person with the box left unticked can't silently erase consent
 they already gave. No unsubscribe flow exists yet because no marketing is being sent yet — build
 one before the first campaign, not before.
+
+## Owner admin (`/admin`)
+
+**https://www.atlanticaccommodation.co.za/admin/** — a private page where the owners describe a
+change they want on the website, in plain language, and Claude turns it into a complete, specific
+change request for Nimbus Design. Built 2026-09-16 at Louise's request, so the owners don't have
+to track her down and explain every small edit.
+
+**Stage 1 (this): Claude gathers the request; Louise makes the change.** Claude never edits the
+site. It asks follow-up questions until the request is unambiguous ("which photo?", "what should
+it say instead?"), quotes the current wording back from the live pages, reads back a summary,
+and only files the request once the owner confirms. Louise gets an email; the owner sees it under
+"My requests" with a status Louise updates.
+
+**Stage 2 (planned, not built):** Claude also makes the change on a branch, Vercel builds a
+preview link, and someone approves it before it goes live. Deliberately deferred until Stage 1
+shows what the owners actually ask for — that decides what's safe to automate.
+
+### How an owner uses it
+
+1. Open `/admin/`, enter their email, tap **Email me a sign-in link**.
+2. Open the email, tap **Sign in**, then tap **Sign in** again on the page. (The second tap is on
+   purpose — see "Security" below.) They stay signed in for 30 days on that device.
+3. Type what they want changed; attach photos with the paperclip if it's a photo change.
+4. Answer Claude's questions, confirm the summary, and get a request number.
+
+### How Louise handles a request
+
+Each confirmed request emails `ADMIN_NOTIFY_EMAIL` with the page, the current and requested
+content, links to any photos (valid 30 days), and **reply-to set to the owner** — just hit reply.
+Requests flagged as touching booking, calendar sync, enquiry emails, payments, security or hosting
+(or that are really new features) carry a warning banner: check before quoting or changing.
+
+Track progress in Supabase Studio → table **`site_change_requests`**:
+
+| Column | What it's for |
+|---|---|
+| `status` | `new` → `in_progress` → `done` (or `declined`). The owner sees this as Received / In progress / Done / Not going ahead. |
+| `response_note` | Shown to the owner under the request — "Done, live now", "Needs a quote, emailed you". |
+| `conversation_id` | Links to `site_admin_conversations`, the full chat, if the summary isn't enough. |
+| `attachments` | Photo refs and names; files are in the private Storage bucket `site-change-request-files`. |
+
+### Access
+
+Who can sign in is a table, not code: **`site_admin_users`** (one row per person per site).
+
+- **Grant access:** insert a row — `site = 'atlantic-accommodation'`, `email` in lowercase.
+- **Revoke access:** delete the row. Their next click fails even if they're mid-session.
+
+As of 2026-09-16 the only address is `info@atlanticaccommodation.co.za` — Louise's choice: the
+shared business inbox the owners already read, so access belongs to the business, not a person.
+Anyone who can read that inbox can sign in.
+
+### Security
+
+- **No passwords.** Sign-in is a one-time emailed link: single use, 15-minute expiry, at most 5 per
+  hour per address. The login form gives the same response whether or not an address has access,
+  so it can't be used to find out which addresses do.
+- **The link needs a tap on the page to work.** Email security scanners (Outlook Safe Links, which
+  the owners use, is one) open links to check them. If opening the link signed you in, the scanner
+  would use it up first. So the page only spends the token when the owner taps **Sign in**.
+- **Only hashes are stored.** Sign-in tokens and session cookies are random 256-bit values; the
+  database holds their SHA-256 hashes, so a leaked table can't be replayed as a login.
+- **The session cookie** is `__Host-aa_admin`: HttpOnly (page scripts can't read it), Secure,
+  SameSite=Strict, and the `__Host-` prefix stops it being set for any other subdomain. Every POST
+  must be JSON, which a cross-site form can't send — together that blocks CSRF.
+- **Photos** are resized to ≤2000px JPEG in the browser, checked server-side against real image file
+  signatures (a renamed non-image is rejected), and stored in a **private** bucket under a folder
+  derived from the owner's email. The assistant can only attach photos the owner actually uploaded
+  in that same conversation, whatever it's told.
+- **Database:** six new tables (`site_admin_users`, `_login_tokens`, `_sessions`,
+  `_conversations`, `site_change_requests`, `site_admin_ai_usage`), RLS on with no public
+  policies — same as every other table here. Migration `create_site_admin_change_requests`.
+- `/admin` and `/api/admin` send `X-Robots-Tag: noindex, nofollow`; the page is also `noindex` and
+  isn't linked from anywhere on the public site.
+
+**Why every table has a `site` column:** this Supabase project also holds Langebaan Local's data.
+The column keeps the admin's rows clearly apart, and means the same backend could serve another
+client site later by changing one constant (`SITE` in `lib/site-admin.js`).
+
+### The assistant
+
+- **Model:** `claude-opus-5` at effort `medium` (`lib/admin-assistant.js`). Requirement-gathering
+  chat doesn't need the default `high`, and medium holds quality at far fewer tokens. Override the
+  model without a code change by setting `ADMIN_CHAT_MODEL` (e.g. `claude-sonnet-5`, cheaper,
+  worth trying once there's real usage to compare against).
+- **Refusal fallbacks are on** (`fallbacks: "default"`): if Opus 5's safety classifiers ever
+  decline a message, the API retries it on Anthropic's recommended model inside the same call
+  rather than failing. If the whole chain declines, the owner gets a polite "try describing it
+  another way" and the declined message isn't saved, so it can't poison later turns.
+- **It knows what the site says now.** `lib/site-content.js` fetches the six public pages from the
+  live site and reduces them to text: headings, paragraphs, list items, and every photo by
+  filename and alt text in page order, so "the second photo on the Apartment page" is resolvable.
+  About 4,000 tokens, cached in the prompt, so after the first message a conversation
+  pays a tenth of the normal rate for it. Prices and availability load client-side, so they aren't
+  in it (the assistant is told so).
+- **Conversations are stored server-side** in API format and only ever appended to, which keeps
+  Opus 5's thinking blocks valid across turns. The browser only sends the newest message. They
+  resume after a reload for 14 days; "New request" starts a fresh one.
+
+### Cost and the spending cap
+
+Billed to Louise's Anthropic account (per her 2026-09-16 decision). Every Claude call is logged to
+`site_admin_ai_usage` with its token counts and an estimated cost (at list price: Opus 5 $5/$25
+per million input/output tokens, cache writes 1.25×, cache reads 0.1×).
+
+**Monthly cap: `ADMIN_AI_MONTHLY_CAP_USD`, default $20.** Once that month's logged spend reaches
+it, the chat politely pauses until the 1st, and nothing else on the site is affected. The ledger is a
+safeguard, not the bill; the Anthropic Console is the source of truth. **Also set a spend limit
+in the Anthropic Console**, so there's a hard stop even if this code had a bug.
+
+Rough size of a request, from the prompt sizes (not yet measured against live traffic): a typical
+back-and-forth of 4–6 messages is about US$0.15–0.40, dominated by Claude's replies; the
+website snapshot is cheap once cached. Check real numbers after the first few weeks:
+
+```sql
+select date_trunc('month', created_at) as month, count(*) as calls, round(sum(cost_usd), 2) as usd
+from site_admin_ai_usage where site = 'atlantic-accommodation' group by 1 order by 1 desc;
+```
+
+### Setup (environment variables)
+
+| Variable | Required | Notes |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | **yes** | From console.anthropic.com. Add it yourself so it never lands in the repo or a transcript: `vercel env add ANTHROPIC_API_KEY production`. Until it's set, owners can sign in but the chat shows "still being switched on". |
+| `ADMIN_NOTIFY_EMAIL` | no | Where requests are emailed. Set to `louiseduplessis@me.com`. Unset = saved to Supabase only. |
+| `ADMIN_AI_MONTHLY_CAP_USD` | no | Default `20`. |
+| `ADMIN_CHAT_MODEL` | no | Default `claude-opus-5`. |
+
+Reuses what's already configured: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`,
+`ENQUIRY_FROM`. Env var changes only take effect on the next deployment.
+
+**The site's first npm dependency.** Everything else here calls its APIs over plain `fetch` with no
+build step, and still does. The admin uses the official Anthropic SDK instead: it handles retries
+on overload, typed errors, and the beta fallback parameters correctly, which is worth one
+dependency. Vercel installs it from `package-lock.json` on deploy; there is still no build step.
+
+**Function count:** all admin endpoints share one function (`api/admin/[action].js`) because
+Vercel's Hobby plan allows 12 per project; the site now uses 7.
 
 ## Anti-spam
 

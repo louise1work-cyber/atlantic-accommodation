@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Website admin – Atlantic Accommodation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..600;1,300..500&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/css/style.css" />
+<link rel="stylesheet" href="/assets/css/admin.css" />
+<link rel="icon" type="image/png" href="/assets/img/favicon.png" />
+</head>
+<body class="admin">
+
+<header class="admin-bar">
+  <div class="admin-bar__inner">
+    <a class="brand" href="/" aria-label="Atlantic Accommodation website">
+      <img class="brand__logo" src="/assets/img/logo-deep.png" width="651" height="229" alt="Atlantic Accommodation" />
+    </a>
+    <span class="admin-bar__label">Website admin</span>
+    <button type="button" class="admin-link" id="sign-out" hidden>Sign out</button>
+  </div>
+</header>
+
+<main class="admin-main">
+
+  <section id="view-loading" class="admin-card admin-card--quiet" aria-live="polite">
+    <p class="admin-muted">Loading…</p>
+  </section>
+
+  <section id="view-login" class="admin-card" hidden>
+    <h1 class="admin-title">Sign in</h1>
+    <p class="admin-lead">Enter the email address that has access to this admin and we'll send you a one-time sign-in link.</p>
+    <form id="login-form" novalidate>
+      <div class="field">
+        <label for="login-email">Email address</label>
+        <input id="login-email" name="email" type="email" autocomplete="email" inputmode="email" required />
+      </div>
+      <button type="submit" class="btn btn--primary">Email me a sign-in link</button>
+      <p class="admin-status" id="login-status" role="status"></p>
+    </form>
+  </section>
+
+  <section id="view-verify" class="admin-card" hidden>
+    <h1 class="admin-title">Finish signing in</h1>
+    <p class="admin-lead">Tap below to finish signing in on this device.</p>
+    <button type="button" class="btn btn--primary" id="verify-button">Sign in</button>
+    <p class="admin-status" id="verify-status" role="status"></p>
+  </section>
+
+  <section id="view-app" hidden>
+    <div class="admin-tabs" role="tablist" aria-label="Admin sections">
+      <button type="button" role="tab" class="admin-tab is-active" id="tab-chat" aria-selected="true" aria-controls="panel-chat">Request a change</button>
+      <button type="button" role="tab" class="admin-tab" id="tab-requests" aria-selected="false" aria-controls="panel-requests">My requests</button>
+    </div>
+
+    <div id="panel-chat" role="tabpanel" aria-labelledby="tab-chat">
+      <div class="admin-notice" id="assistant-off" hidden>
+        The assistant is still being switched on. You'll be able to send requests here shortly — for now, please email Nimbus Design.
+      </div>
+
+      <div class="chat-head">
+        <p class="admin-muted" id="chat-hint">Tell me what you'd like changed on the website and I'll send it to Nimbus Design.</p>
+        <button type="button" class="admin-link" id="new-request">New request</button>
+      </div>
+
+      <div class="chat-log" id="chat-log" role="log" aria-live="polite" aria-relevant="additions">
+        <div class="chat-empty" id="chat-empty">
+          <p>For example:</p>
+          <ul>
+            <li>“Change the Beach Cottage description to say it's pet friendly.”</li>
+            <li>“Replace the first photo on the Apartment page” — and attach the new one.</li>
+            <li>“Add braai facilities to the Seaview amenities.”</li>
+          </ul>
+          <p>I'll ask for anything I need, then check the details with you before sending.</p>
+        </div>
+      </div>
+
+      <form class="composer" id="composer" novalidate>
+        <div class="composer__photos" id="photo-tray" hidden></div>
+        <div class="composer__row">
+          <label class="composer__attach" title="Attach photos">
+            <input type="file" id="photo-input" accept="image/*" multiple />
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5 12.6 21a5.5 5.5 0 0 1-7.8-7.8L13.3 4.7a3.7 3.7 0 0 1 5.2 5.2l-8.4 8.4a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8"/></svg>
+            <span class="visually-hidden">Attach photos</span>
+          </label>
+          <label for="composer-text" class="visually-hidden">Your message</label>
+          <textarea id="composer-text" rows="1" placeholder="Message…" maxlength="4000"></textarea>
+          <button type="submit" class="btn btn--primary composer__send" id="send-button">Send</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="panel-requests" role="tabpanel" aria-labelledby="tab-requests" hidden>
+      <p class="admin-muted">Requests you've sent, newest first. Nimbus Design updates the status as they work on each one.</p>
+      <ol class="request-list" id="request-list" aria-live="polite"></ol>
+    </div>
+  </section>
+
+</main>
+
+<script src="/assets/js/admin.js"></script>
+</body>
+</html>
