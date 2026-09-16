@@ -88,7 +88,10 @@
           </label>
           <label for="composer-text" class="visually-hidden">Your message</label>
           <textarea id="composer-text" rows="1" placeholder="Message…" maxlength="4000"></textarea>
-          <button type="submit" class="btn btn--primary composer__send" id="send-button">Send</button>
+          <button type="submit" class="btn btn--primary composer__send" id="send-button" aria-label="Send">
+            <svg class="composer__send-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>
+            <span class="composer__send-label" id="send-label">Send</span>
+          </button>
         </div>
       </form>
     </div>

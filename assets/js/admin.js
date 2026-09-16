@@ -227,7 +227,10 @@
     var hasContent = textarea.value.trim() || ready;
     var button = $("send-button");
     button.disabled = !state.assistantReady || state.sending || uploading || !hasContent;
-    button.textContent = uploading ? "Uploading…" : "Send";
+    // Only the label changes: on phones the label is hidden and the arrow icon shows.
+    var label = uploading ? "Uploading…" : "Send";
+    $("send-label").textContent = label;
+    button.setAttribute("aria-label", label);
   }
 
   $("composer").addEventListener("submit", function (e) {
