@@ -710,7 +710,13 @@ Anyone who can read that inbox can sign in.
   must be JSON, which a cross-site form can't send — together that blocks CSRF.
 - **Photos** are resized to ≤2000px JPEG in the browser, checked server-side against real image file
   signatures (a renamed non-image is rejected), and stored in a **private** bucket under a folder
-  derived from the owner's email. The assistant can only attach photos the owner actually uploaded
+  derived from the owner's email. They're decoded with `createImageBitmap` straight from the file:
+  the first version loaded a `data:` URL of the whole original into an `<img>`, which desktop
+  browsers handled but **iPhone Safari refused for full-size camera photos**. Every photo showed
+  "Failed" in Louise's first real test (2026-09-16), and nothing reached the server. If a browser
+  still can't decode a photo, a JPEG/PNG/WebP under 3 MB is uploaded as-is; otherwise the reason is
+  shown in the chat (it used to hide in hover text a phone can't show). **Test photo changes on a
+  real iPhone** — desktop browsers, including a narrow "mobile" window, don't reproduce this. The assistant can only attach photos the owner actually uploaded
   in that same conversation, whatever it's told.
 - **Database:** six new tables (`site_admin_users`, `_login_tokens`, `_sessions`,
   `_conversations`, `site_change_requests`, `site_admin_ai_usage`), RLS on with no public
