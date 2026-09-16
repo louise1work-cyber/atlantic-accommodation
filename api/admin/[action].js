@@ -10,6 +10,7 @@
  *   GET  me                                    → who's signed in
  *   GET  conversation                          → the latest chat, for resuming after a reload
  *   POST chat          { conversationId?, text, photos: [{ ref, name }] }
+ *                                             → { conversationId, reply, requests: [{ number, updated }] }
  *   POST upload        { name, type, data }    → stores one photo (base64), returns its ref
  *   GET  requests                              → change requests for this site, newest first
  *
@@ -134,6 +135,9 @@ async function me(req, res, { session }) {
 
 // ---- Conversation ----------------------------------------------------------
 
+const noticeText = (number, updated) =>
+  updated ? `Request #${number} updated` : `Request #${number} sent to Nimbus Design`;
+
 // Turn stored API messages into what the page draws: the owner's words, the
 // assistant's replies, and a notice wherever a request was filed. Thinking blocks,
 // tool calls and fallback markers stay server-side.
@@ -160,7 +164,7 @@ function displayItems(messages) {
       } else if (block.type === "tool_result" && !block.is_error) {
         try {
           const result = JSON.parse(block.content);
-          if (result.request_no) items.push({ role: "notice", text: `Request #${result.request_no} sent to Nimbus Design` });
+          if (result.request_no) items.push({ role: "notice", text: noticeText(result.request_no, result.status === "updated") });
         } catch { /* not a filing result */ }
       }
     }
@@ -228,44 +232,73 @@ async function chat(req, res, { session, body }) {
 
   const knownPhotos = photosIn(messages);
 
-  const onSubmit = async (input) => {
-    // Only photos this owner actually attached in this conversation can be linked,
-    // whatever refs the model passes.
-    const attachments = (input.attachment_refs || [])
+  // Only photos this owner actually attached in this conversation can be linked to a
+  // request, whatever refs the model passes.
+  const attachmentsFor = (refs) =>
+    (refs || [])
       .filter((ref) => knownPhotos.has(ref) && admin.objectPath(session.email, ref))
       .map((ref) => ({ ref, name: knownPhotos.get(ref), path: admin.objectPath(session.email, ref) }));
 
-    const request = await admin.createChangeRequest({
-      requested_by: session.email,
-      conversation_id: convo.id,
-      title: clean(input.title, 200) || "Website change",
-      property: input.property === "Not property-specific" ? null : clean(input.property, 120),
-      page: clean(input.page, 300) || null,
-      change_type: input.change_type,
-      current_content: clean(input.current_content, 8000) || null,
-      requested: clean(input.requested, 8000),
-      attachments,
-      restricted_area: Boolean(input.restricted_area),
-      developer_notes: clean(input.developer_notes, 4000) || null
-    });
+  const requestFields = (input) => ({
+    title: clean(input.title, 200) || "Website change",
+    property: assistant.propertyName(input.property),
+    page: clean(input.page, 300) || null,
+    change_type: input.change_type,
+    current_content: clean(input.current_content, 8000) || null,
+    requested: clean(input.requested, 8000),
+    attachments: attachmentsFor(input.attachment_refs),
+    restricted_area: Boolean(input.restricted_area),
+    developer_notes: clean(input.developer_notes, 4000) || null
+  });
 
-    // The request is saved; a failed notification mustn't make the assistant tell the
-    // owner it didn't go through.
+  // The request is already saved when this runs; a failed notification mustn't make
+  // the assistant tell the owner it didn't go through.
+  const notify = async (request, options) => {
     try {
       const signed = await Promise.all(
-        attachments.map(async (a) => ({ name: a.name, url: await admin.signPhoto(a.path, PHOTO_LINK_SECONDS) }))
+        request.attachments.map(async (a) => ({ name: a.name, url: await admin.signPhoto(a.path, PHOTO_LINK_SECONDS) }))
       );
-      await sendChangeRequest(request, signed);
+      await sendChangeRequest(request, signed, options);
     } catch (err) {
       console.error(`change request #${request.request_no}: notification email failed:`, err.message);
     }
+  };
 
-    return { request_no: request.request_no, status: "received" };
+  const handlers = {
+    submit_change_request: async (input) => {
+      let request;
+      try {
+        request = await admin.createChangeRequest({
+          requested_by: session.email,
+          conversation_id: convo.id,
+          ...requestFields(input)
+        });
+      } catch (err) {
+        console.error("createChangeRequest:", err.message);
+        throw new Error("The request couldn't be saved just now. Tell the owner it didn't go through and suggest trying again in a few minutes.");
+      }
+      await notify(request);
+      return { request_no: request.request_no, status: "received" };
+    },
+
+    amend_change_request: async (input) => {
+      const requestNo = Number(input.request_no);
+      if (!Number.isInteger(requestNo) || requestNo < 1) throw new Error("That isn't a valid request number.");
+      const where = { requestNo, conversationId: convo.id, email: session.email };
+      const fields = requestFields(input);
+      // No photos listed means "leave them as they are", not "remove them": a correction
+      // to, say, the property shouldn't silently drop the photos attached to the request.
+      if (!fields.attachments.length) delete fields.attachments;
+      const request = await admin.amendChangeRequest({ ...where, fields });
+      if (!request) throw new Error(await admin.whyNotAmendable(where));
+      await notify(request, { updated: true });
+      return { request_no: request.request_no, status: "updated" };
+    }
   };
 
   let result;
   try {
-    result = await assistant.runTurn({ messages, siteText: await siteSnapshot(), onSubmit });
+    result = await assistant.runTurn({ messages, siteText: await siteSnapshot(), handlers });
   } catch (err) {
     if (Array.isArray(err.usage)) await recordUsage(session.email, err.usage);
     if (err instanceof Anthropic.AuthenticationError || err instanceof Anthropic.PermissionDeniedError) {
@@ -289,7 +322,7 @@ async function chat(req, res, { session, body }) {
   return res.status(200).json({
     conversationId: convo.id,
     reply: result.reply,
-    submitted: result.submitted.map((s) => s.request_no)
+    requests: result.submitted.map((r) => ({ number: r.request_no, updated: r.status === "updated" }))
   });
 }
 

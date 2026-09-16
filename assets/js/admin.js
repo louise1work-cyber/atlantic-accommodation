@@ -261,11 +261,11 @@
         state.conversationId = data.conversationId;
         typing.remove();
         // Notice before reply — the same order the conversation redraws in after a reload.
-        (data.submitted || []).forEach(function (n) {
-          addMessage("notice", "Request #" + n + " sent to Nimbus Design");
+        (data.requests || []).forEach(function (r) {
+          addMessage("notice", "Request #" + r.number + (r.updated ? " updated" : " sent to Nimbus Design"));
         });
         if (data.reply) addMessage("assistant", data.reply);
-        if (data.submitted && data.submitted.length) state.requestsStale = true;
+        if (data.requests && data.requests.length) state.requestsStale = true;
       })
       .catch(function (err) {
         typing.remove();

@@ -668,6 +668,10 @@ shows what the owners actually ask for — that decides what's safe to automate.
 
 Each confirmed request emails `ADMIN_NOTIFY_EMAIL` with the page, the current and requested
 content, links to any photos (valid 30 days), and **reply-to set to the owner** — just hit reply.
+If the owner (or Claude) corrects a request later in the same conversation, it's updated in place
+and you get a second email headed **"Updated: Change request #N"** that replaces the first. That
+only works while `status` is still `new`: once you move a request to `in_progress`, it can't be
+changed underneath you, and a correction arrives as a new request instead.
 Requests flagged as touching booking, calendar sync, enquiry emails, payments, security or hosting
 (or that are really new features) carry a warning banner: check before quoting or changing.
 
@@ -734,6 +738,15 @@ client site later by changing one constant (`SITE` in `lib/site-admin.js`).
   About 4,000 tokens, cached in the prompt, so after the first message a conversation
   pays a tenth of the normal rate for it. Prices and availability load client-side, so they aren't
   in it (the assistant is told so).
+- **Two tools:** `submit_change_request` files a request; `amend_change_request` corrects one
+  filed earlier in the same conversation (status `new` only). Amend replaces the details, except
+  that an amend listing no photos keeps the request's existing photos rather than dropping them.
+- **Property is chosen from ASCII slugs** (`beach-cottage`, `apartment`,
+  `seaview-dolphin-beach`, `none`) and stored as the display name from `lib/properties.js`.
+  Found in the first live test (2026-09-16): with the options as full names, Claude filed a
+  Seaview request against the Apartment, then filed its own "correction" against the Beach
+  Cottage. With strict tool use it never once produced `Atlantic Seaview – Dolphin Beach`, the
+  only option containing a non-ASCII character (the en dash). Keep tool enum values plain ASCII.
 - **Conversations are stored server-side** in API format and only ever appended to, which keeps
   Opus 5's thinking blocks valid across turns. The browser only sends the newest message. They
   resume after a reload for 14 days; "New request" starts a fresh one.
@@ -749,9 +762,11 @@ it, the chat politely pauses until the 1st, and nothing else on the site is affe
 safeguard, not the bill; the Anthropic Console is the source of truth. **Also set a spend limit
 in the Anthropic Console**, so there's a hard stop even if this code had a bug.
 
-Rough size of a request, from the prompt sizes (not yet measured against live traffic): a typical
-back-and-forth of 4–6 messages is about US$0.15–0.40, dominated by Claude's replies; the
-website snapshot is cheap once cached. Check real numbers after the first few weeks:
+**Measured in the first live test (2026-09-16): a two-message conversation that filed a request
+cost US$0.11**, about R2. The first call writes the ~7,700-token site snapshot to cache ($0.055);
+every call after that reads it at a tenth of the price, so later messages cost $0.015–0.025 each,
+mostly Claude's replies. A longer back-and-forth of 4–6 messages should stay well under US$0.30.
+Check real numbers after the first few weeks:
 
 ```sql
 select date_trunc('month', created_at) as month, count(*) as calls, round(sum(cost_usd), 2) as usd
