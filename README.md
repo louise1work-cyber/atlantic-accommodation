@@ -830,6 +830,28 @@ The site key is **public** by design (it ships in the page); only the secret mus
 Bots that never load the page — the most common source of form spam — are already blocked by the
 honeypot and timing trap without Turnstile.
 
+## Visitor analytics (Vercel Web Analytics)
+
+Switched on 2026-09-17. Vercel's Web Analytics dashboard (project → **Analytics**) shows visitors,
+page views, top pages, referrers, countries and devices. No cookies, so no consent banner is needed.
+
+This site is plain HTML, so Vercel can't inject the tracker itself: each **public** page loads it
+with one line next to `main.js` — home, properties, the three property pages and contact:
+
+```html
+<script defer src="/_vercel/insights/script.js"></script>
+```
+
+- **No inline part.** Vercel's HTML snippet also includes an inline `window.va` stub, which only
+  queues *custom* events. The CSP blocks inline scripts, and page views don't need it, so it's
+  left out. If custom events are ever wanted, load a small external file that defines the stub
+  first, rather than loosening the CSP.
+- **Same-origin, so the CSP is unchanged:** the script and its `/_vercel/insights/view` beacon are
+  both on this domain (`script-src 'self'`, `connect-src 'self'`).
+- **Deliberately not on** `/admin` (owners, not visitors) or the payment pages.
+- A new page needs the line added too, or it won't be counted.
+- **Speed Insights** was left off at Louise's request.
+
 ## Security headers
 
 `vercel.json` sets site-wide headers on every response: a **Content-Security-Policy** that only
