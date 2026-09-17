@@ -30,6 +30,7 @@ listing on **Airbnb**.
 | `lib/ical-reader.js` | iCalendar reader (parses Airbnb's or Booking.com's feed back in) |
 | `lib/properties.js` | Shared slug -> property-name map used by both calendar routes |
 | `lib/payfast.js` | PayFast signing, verification and payment-field builder |
+| `llms.txt` | Plain-markdown summary for AI assistants (what the business is, each property, how to book). Keep it in step with the property pages, and never mention online payment |
 | `favicon.ico` | Tab icon, at the site root because browsers request that exact path |
 | `design-source/` | Editable artwork originals — versioned, but excluded from the deploy by `.vercelignore` |
 | `admin/index.html` | Owner admin — sign in and ask Claude for website changes (see "Owner admin") |
