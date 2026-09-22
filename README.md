@@ -702,6 +702,12 @@ As of 2026-09-16 there are two addresses:
 
 ### Security
 
+- **Admin email is sent from `admin@`, never `info@`.** The owners' admin address *is*
+  `info@atlanticaccommodation.co.za`, and a sign-in link sent from that address **to** that address
+  looks to any mail server like someone spoofing your own domain — Hayley's sign-in emails went
+  straight to Junk (2026-09-22) even though DKIM, SPF and DMARC all pass. Same verified domain, so
+  authentication is unchanged; `reply_to` still points at `info@`. Override with `ADMIN_FROM`.
+  The sign-in email also carries real context and the link as visible text, not just a bare button.
 - **No passwords.** Sign-in is a one-time emailed link: single use, 15-minute expiry, at most 5 per
   hour per address. The login form gives the same response whether or not an address has access,
   so it can't be used to find out which addresses do.
@@ -792,6 +798,7 @@ from site_admin_ai_usage where site = 'atlantic-accommodation' group by 1 order 
 | `ADMIN_NOTIFY_EMAIL` | no | Where requests are emailed. Set to `louiseduplessis@me.com`. Unset = saved to Supabase only. |
 | `ADMIN_AI_MONTHLY_CAP_USD` | no | Default `20`. |
 | `ADMIN_CHAT_MODEL` | no | Default `claude-opus-5`. |
+| `ADMIN_FROM` | no | Sender for admin emails. Defaults to `admin@` on the same domain as `ENQUIRY_FROM`. |
 
 Reuses what's already configured: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`,
 `ENQUIRY_FROM`. Env var changes only take effect on the next deployment.
