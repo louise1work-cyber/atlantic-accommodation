@@ -713,15 +713,24 @@ As of 2026-09-16 there are two addresses:
   Fixed in code: the sign-in email now sends **no `reply_to`** (it differed from `From`, which is
   what `FROM_NOT_REPLYTO` scores — an own goal from the `admin@` change) and uses `#F4F8F6`
   instead of `#fff` for the button text (`X_HTML_HIDDEN_COLOR`). That's −0.7, to 4.4 — **still over
-  the threshold, because Bayes alone is 4.3.** Bayes can only be settled on xneelo's side:
-  allowlist `admin@atlanticaccommodation.co.za` in konsoleH's spam settings for the mailbox (the
-  deterministic fix), and/or mark the messages Not Junk to retrain it. Worth knowing there's a
-  feedback loop: each message that sits in Junk trains Bayes to junk the next one.
+  the threshold, because Bayes alone is 4.3.** Bayes can only be settled on xneelo's side.
+  **Fixed there and verified (2026-09-23):** konsoleH → `atlanticaccommodation.co.za` → Mail →
+  Block / Whitelist → **Whitelist**, entry `admin@atlanticaccommodation.co.za`. Type the address
+  and press Return — clicking Add alone doesn't register. A sign-in email sent straight afterwards
+  landed in the **Inbox**, not Junk. The whitelist bypasses the score entirely, so it holds even
+  though Bayes still rates the message 4.3. Two things worth knowing: the whitelist is per mailbox,
+  so it must be repeated if the admin ever emails a different owner address; and marking messages
+  **Not Junk** in Apple Mail does *not* retrain xneelo — it only clears Mail's own flag and leaves
+  the message in the server Junk folder. Also on that page: the mailbox spam filter is at level 4
+  while xneelo recommends 5 — left at 4, since raising it affects every address on the domain.
+  Worth knowing there's a feedback loop: each message that sits in Junk trains Bayes to junk the
+  next one.
 - **Admin email is sent from `admin@`, never `info@`.** The owners' admin address *is*
   `info@atlanticaccommodation.co.za`, and a sign-in link sent from that address **to** that address
   looks to any mail server like someone spoofing your own domain — Hayley's sign-in emails went
   straight to Junk (2026-09-22) even though DKIM, SPF and DMARC all pass. Same verified domain, so
-  authentication is unchanged; `reply_to` still points at `info@`. Override with `ADMIN_FROM`.
+  authentication is unchanged. The sign-in email sends no `reply_to` at all (see above); the
+  change-request email still replies to whoever filed it. Override the sender with `ADMIN_FROM`.
   The sign-in email also carries real context and the link as visible text, not just a bare button.
 - **No passwords.** Sign-in is a one-time emailed link: single use, 15-minute expiry, at most 5 per
   hour per address. The login form gives the same response whether or not an address has access,
