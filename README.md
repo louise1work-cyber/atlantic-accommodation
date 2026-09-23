@@ -702,6 +702,21 @@ As of 2026-09-16 there are two addresses:
 
 ### Security
 
+- **Why sign-in emails were junked, measured (2026-09-23).** The raw headers of a junked message
+  show xneelo's own filter doing it — `X-Spam-Flag: YES` from `spamd6.jnb1.host-h.net`,
+  **5.1 points against a threshold of 4**. The same message scores **10/10 at mail-tester.com**, so
+  nothing is wrong with the email itself. The breakdown:
+  `BAYES_99` +3.5 and `BAYES_999` +0.8 — xneelo's *learned* filter, 4.3 of the 5.1 points;
+  `FROM_NOT_REPLYTO` +0.5, `RELAYCOUNTRY_BAD_US` +0.5 (Resend relays via a US IP),
+  `X_HTML_HIDDEN_COLOR` +0.2, `HTML_MESSAGE` +0.1, `DKIM_SIGNED` +0.1, less
+  `SPF_PASS` −0.3, `DKIM_VALID` −0.1, `DKIM_VALID_AU` −0.1, `DMARC_PASS` −0.1.
+  Fixed in code: the sign-in email now sends **no `reply_to`** (it differed from `From`, which is
+  what `FROM_NOT_REPLYTO` scores — an own goal from the `admin@` change) and uses `#F4F8F6`
+  instead of `#fff` for the button text (`X_HTML_HIDDEN_COLOR`). That's −0.7, to 4.4 — **still over
+  the threshold, because Bayes alone is 4.3.** Bayes can only be settled on xneelo's side:
+  allowlist `admin@atlanticaccommodation.co.za` in konsoleH's spam settings for the mailbox (the
+  deterministic fix), and/or mark the messages Not Junk to retrain it. Worth knowing there's a
+  feedback loop: each message that sits in Junk trains Bayes to junk the next one.
 - **Admin email is sent from `admin@`, never `info@`.** The owners' admin address *is*
   `info@atlanticaccommodation.co.za`, and a sign-in link sent from that address **to** that address
   looks to any mail server like someone spoofing your own domain — Hayley's sign-in emails went
