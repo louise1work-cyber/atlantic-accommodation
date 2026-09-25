@@ -105,11 +105,19 @@ the location-map tabs, and `properties/crew-house.html` itself are all gone; `si
 longer lists it either. Its specs were 4 bed / 3 bath / sleeps 15, braai, fireplace, near Club
 Mykonos, kept here only for history.
 
-**Deliberately left in place:** `lib/properties.js`'s `crew-house` entry, `api/ical/crew-house.ics`,
-`api/availability/crew-house`, the `AIRBNB_ICAL_CREW_HOUSE` env var, its Supabase `enquiries` rows,
-and the four `crew-house*.jpg` assets. The property is still an active Airbnb listing outside this
-site, so its calendar sync keeps running quietly rather than breaking a setup the owner still
-depends on. Tear these out too if the owner confirms the Airbnb listing itself is gone.
+**Deliberately left in place — ARCHIVED, not active:** `lib/properties.js`'s `crew-house` entry,
+`api/ical/crew-house.ics`, `api/availability/crew-house`, the `AIRBNB_ICAL_CREW_HOUSE` env var, its
+Supabase `enquiries` rows, and the four `crew-house*.jpg` assets.
+
+**Status as of 2026-09-25, per Louise: the Airbnb listing has been DEACTIVATED but not deleted.**
+So this plumbing is now dormant rather than load-bearing — nothing depends on it day to day, but
+the listing could be reactivated, and deleting the `crew-house` entry would then mean rebuilding
+it. Leaving it costs nothing: the endpoints serve an empty calendar that nobody fetches.
+
+Treat it as archived. Don't extend it, don't wire anything new to it, and don't let it mislead you
+into thinking Crew House is a live property — it is not on the site and not taking bookings.
+**Tear it all out only if the owner confirms the Airbnb listing has been deleted outright**, not
+merely deactivated.
 
 **No `BOOKING_ICAL_CREW_HOUSE` and never will be, per Louise (2026-09-05): Crew House isn't listed
 on Booking.com at all.** `/api/availability/crew-house` reporting `sources.booking: "unconfigured"`
