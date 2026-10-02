@@ -110,9 +110,15 @@ Mykonos, kept here only for history.
 Supabase `enquiries` rows, and the four `crew-house*.jpg` assets.
 
 **Status as of 2026-09-25, per Louise: the Airbnb listing has been DEACTIVATED but not deleted.**
-So this plumbing is now dormant rather than load-bearing — nothing depends on it day to day, but
-the listing could be reactivated, and deleting the `crew-house` entry would then mean rebuilding
-it. Leaving it costs nothing: the endpoints serve an empty calendar that nobody fetches.
+The listing could be reactivated, and deleting the `crew-house` entry would then mean rebuilding it.
+
+**⚠️ CORRECTED 2026-10-01 — this plumbing is NOT dormant.** The note here previously said the
+endpoints "serve an empty calendar that nobody fetches". That is wrong. Vercel Observability shows
+`Airbnb calendar importer v1.0` fetching `/api/ical/crew-house.ics` **67 times in a 7-day window**
+(2026-09-24 → 10-01), on the same steady cadence as the three live properties. Deactivating a
+listing evidently does not stop Airbnb polling its imported calendars. So deleting the `crew-house`
+entry would break a **live** import, not a dormant one — it would start returning 404 to a client
+that is actively calling it several times a day.
 
 Treat it as archived. Don't extend it, don't wire anything new to it, and don't let it mislead you
 into thinking Crew House is a live property — it is not on the site and not taking bookings.
@@ -472,7 +478,22 @@ https://www.atlanticaccommodation.co.za/api/ical/seaview-dolphin-beach.ics
 ```
 
 (Crew House's feed above still works even though the property was removed from the public site
-on 2026-09-05 — see "What's placeholder vs. confirmed".)
+on 2026-09-05, and Airbnb still actively imports it — see "What's placeholder vs. confirmed".)
+
+**To check whether a platform is actually importing, use Vercel Observability — NOT the Logs tab.**
+Observability → Query, group by **User Agent**, timeframe 7 days. A working import shows up as
+`Airbnb calendar importer v1.0` or `Booking.com (icalendar, Bookings::HTTP, …)` with a steady count
+(265 and 301 respectively over 2026-09-24 → 10-01). Add a `User Agent is any of …` filter and
+re-group by **Request Path** to see which properties are covered.
+
+**Why not the Logs tab:** on 2026-09-25 it showed zero Airbnb requests for a full day while Airbnb
+was demonstrably polling all four feeds, and that wrong reading led to a client being emailed
+instructions for something already done. On 2026-10-01 the same view failed outright
+("We could not find logs for the selected filters") with no filters applied, while Observability
+returned full data for the identical window. It is not CDN caching masking the requests — 257 of
+Airbnb's 265 hits were cache **MISS**, so they did invoke the function. Runtime Logs simply
+under-report here. Treat Observability as the source of truth, and don't conclude "no traffic"
+from an empty Logs view.
 
 It lists every row in Supabase for that property where **`confirmed_booking`** is true, as
 blocked all-day date ranges — nothing else. No guest name, email, or phone is ever included in
