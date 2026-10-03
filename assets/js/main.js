@@ -15,6 +15,69 @@
     });
   }
 
+  /* Share button. Opening the site from the iOS Home Screen strips Safari's
+     toolbar and its share button with it; the Web Share API is the only way a
+     page can offer sharing back. Where it's missing (desktop Firefox has never
+     shipped it) we copy the link instead. The button ships with `hidden` and is
+     only revealed here once one of the two is known to work. */
+  var share = document.querySelector("[data-share]");
+  if (share) {
+    var shareBtn = share.querySelector(".share__btn");
+    var shareStatus = share.querySelector(".share__status");
+    var canShare = typeof navigator.share === "function";
+    var canCopy = !!(navigator.clipboard && navigator.clipboard.writeText);
+
+    if (canShare || canCopy) {
+      share.hidden = false;
+      if (!canShare) shareBtn.setAttribute("aria-label", "Copy link to this page");
+
+      // The canonical, not location.href: visitors from Facebook and Instagram
+      // arrive with ?fbclid=… tracking appended, and would share that on.
+      var canonical = document.querySelector('link[rel="canonical"]');
+      var shareUrl = function () { return (canonical && canonical.href) || location.href; };
+
+      var hideTimer, clearTimer, sharing = false;
+      var say = function (msg) {
+        clearTimeout(hideTimer); clearTimeout(clearTimer);
+        shareStatus.textContent = msg;
+        shareStatus.classList.add("is-visible");
+        hideTimer = setTimeout(function () {
+          shareStatus.classList.remove("is-visible");
+          // Emptied after the fade, so a repeat of the same message is a real
+          // change and gets announced again.
+          clearTimer = setTimeout(function () { shareStatus.textContent = ""; }, 250);
+        }, 2600);
+      };
+      var COPY_FAILED = "Couldn't copy the link — copy it from your browser's address bar instead.";
+      var copy = function (url) {
+        if (!canCopy) { say(COPY_FAILED); return; }
+        navigator.clipboard.writeText(url).then(
+          function () { say("Link copied"); },
+          function () { say(COPY_FAILED); }
+        );
+      };
+
+      shareBtn.addEventListener("click", function () {
+        if (sharing) return;   // a second share() while the sheet is open throws InvalidStateError
+        var url = shareUrl();
+        if (!canShare) { copy(url); return; }
+        sharing = true;
+        // First thing in the handler, nothing awaited before it: share() needs
+        // this click's transient activation, and any earlier await can spend it.
+        navigator.share({ title: document.title, url: url }).then(
+          function () { sharing = false; },
+          function (err) {
+            sharing = false;
+            // AbortError is the guest closing the sheet. That's a decision, not a
+            // failure — copying the link anyway would punish them for it.
+            if (err && err.name === "AbortError") return;
+            copy(url);
+          }
+        );
+      });
+    }
+  }
+
   /* Scroll reveal */
   var reveals = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window && reveals.length) {

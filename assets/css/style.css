@@ -193,6 +193,44 @@ p  { margin: 0 0 1.1rem; }
    old margin-based spacing which relied on flex row behavior) fixes it. */
 .nav__toggle span { display: block; width: 22px; height: 2px; background: var(--ink); transition: .25s var(--ease); }
 
+/* Share button, beside the hamburger. Opening the site from the iOS Home
+   Screen ("Open as Web App") strips Safari's toolbar — which is where
+   Safari's own share button lives — and a page can't summon that sheet,
+   so this is the only way back to sharing once it's installed.
+   margin-left: auto pushes it right, next to the toggle: the nav links and
+   CTA are display:none at every width, so the visible row is just logo +
+   these two, and without it justify-content: space-between would strand
+   the button in the middle. */
+.share { position: relative; display: flex; align-items: center; margin-left: auto; }
+/* A class rule's display beats the UA's [hidden] { display: none }, so the
+   hidden attribute needs restating or the button shows before JS approves it. */
+.share[hidden] { display: none; }
+.share__btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; padding: 10px;   /* same touch target as .nav__toggle */
+  background: none; border: 0; cursor: pointer; color: var(--ink);
+}
+.share__btn:hover { color: var(--slate-deep); }
+.share__btn:focus-visible { outline: 2px solid var(--deep); outline-offset: 1px; }
+.share__btn svg {
+  width: 22px; height: 22px;
+  fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+/* Visible result, not only aria-live: clipboard writes get blocked in more
+   places than you'd expect, and a button that silently does nothing reads
+   as broken and gets pressed again. */
+.share__status {
+  position: absolute; top: calc(100% + 6px); right: -10px;
+  width: max-content; max-width: min(280px, calc(100vw - 32px));
+  background: var(--ink); color: var(--bg);
+  font-size: .78rem; line-height: 1.4; letter-spacing: .02em;
+  padding: 8px 12px; border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(21,71,52,.14);
+  opacity: 0; transform: translateY(-4px); pointer-events: none;
+  transition: opacity .2s var(--ease), transform .2s var(--ease);
+}
+.share__status.is-visible { opacity: 1; transform: none; }
+
 .site-header.open .nav__links {
   display: flex; flex-direction: column; align-items: stretch; position: absolute; top: 78px; left: 0; right: 0;
   background: var(--bg); padding: 20px 24px 26px; gap: .4rem; border-bottom: 1px solid var(--line);
@@ -619,4 +657,5 @@ p  { margin: 0 0 1.1rem; }
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; }
   .reveal { transition: none; opacity: 1; transform: none; }
+  .share__status { transition: none; transform: none; }
 }
